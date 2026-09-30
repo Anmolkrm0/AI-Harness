@@ -1,13 +1,23 @@
-# 🚀 AI Harness: Unified Multi-Model AI Workspace
+# 🚀 AI Harness: Unified Multi-Model AI Platform
 
-A complete, self-hosted AI harness with a ChatGPT/Gemini-style interface where users connect multiple AI models, upload documents for built-in automatic RAG, search the web via Tavily, and interact with their Gmail inbox via IMAP—all within a single, unified chat interface.
+A production-ready, self-hosted AI platform with a ChatGPT/Gemini-style interface where users connect multiple AI models, upload documents for built-in automatic RAG, search the web via Tavily, manage their Gmail inbox via IMAP, evaluate responses with an LLM Judge, and collaborate with complete multi-user data isolation—all within a single, unified interface.
 
 ---
 
-## 🌟 Key Features
+## 🌟 Key Capabilities
 
-### 1. Initial Setup & Connect Services Screen
-* **Onboarding & Configuration**: On your first visit, you are presented with the **Connect Services** page.
+### 1. Multi-User Support & Strict Tenant Data Isolation
+* **Multi-Tenant Architecture**: Supports multiple users accessing the platform concurrently with independent workspaces.
+* **Cryptographic Security**: Built with Node 22 native crypto—PBKDF2 with salt + 100,000 iterations of SHA-512 for password hashing, and 256-bit cryptographically secure session tokens.
+* **Per-User API Keys & Credentials**: Every user configures their own API keys (OpenAI, Claude, Gemini, Grok, Tavily, Gmail). One user's keys are never visible to or used by another user.
+* **Private Conversations & History**: Conversations, messages, tool events, and suggested questions are strictly scoped to the authenticated `user_id`.
+* **Private Document RAG**: Uploaded files, chunk embeddings, and similarity searches are private to the user who uploaded them.
+* **Cross-Tenant Protection**: API routes and database queries enforce strict boundaries with `401 Unauthorized`, `403 Forbidden`, and `404 Not Found` guards.
+* **Default Workspace Account**: Pre-seeded demo user `user@aiharness.local` (`password123`) for instant testing.
+
+---
+
+### 2. Multi-Model Support & Mid-Chat Switching
 * **Supported Integrations**:
   * **OpenAI / ChatGPT**: GPT-4o, GPT-4o-mini, o3-mini
   * **Anthropic / Claude**: Claude Sonnet 5.5, Claude Haiku 4.5, Claude Opus 5.5
@@ -15,49 +25,66 @@ A complete, self-hosted AI harness with a ChatGPT/Gemini-style interface where u
   * **xAI / Grok**: Grok 2, Grok Beta
   * **Tavily Search**: Real-time web browsing and source citations
   * **Gmail IMAP**: Email search, reading, and summarization via Google App Passwords
-* **Live Connection Testing**: Each service features a "Test Connection" button that validates credentials in real-time, displays response latency, and verifies API/folder access.
-* **Local & Private**: All keys and credentials are stored strictly on your local machine in SQLite (`server/data/harness.db`).
-
-### 2. Modern ChatGPT & Gemini-Style Chat Interface
-* **Model Switcher Dropdown**: Switch models **at any moment mid-conversation** (e.g., `Gemini Flash` → `Claude Sonnet 5.5` → `GPT-4o` → `Grok 2`).
-* **Model-Agnostic Context**: The entire conversation history is preserved across model switches without any provider-specific lock-in.
-* **Per-Message Model Badges**: Every assistant reply displays a badge identifying which model generated it.
-* **Collapsible & Mobile Drawer Sidebar**: Create new chats (`⌘K`), search past conversations, rename conversations inline, and delete conversations. Fully responsive on mobile screens with a hamburger menu.
-* **Live Tool Execution Cards**: Interactive status pills showing real-time Tavily search queries, cited web links, retrieved RAG excerpts, and referenced Gmail messages.
-* **Markdown & Code Highlighting**: Syntax-highlighted code blocks with one-click copy buttons and formatted tables.
-
-### 3. Built-in Automatic RAG (Retrieval-Augmented Generation)
-* **Zero Configuration**: Simply attach files to your message or upload them via the Document Knowledge Base drawer.
-* **Supported File Formats**:
-  * **PDF** (`.pdf`)
-  * **Word** (`.docx`, `.doc`)
-  * **PowerPoint** (`.pptx`, `.ppt`)
-  * **Spreadsheets** (`.csv`)
-  * **Text & Code** (`.txt`, `.md`, `.json`, `.py`, `.js`, `.ts`, etc.)
-  * **Images** (`.png`, `.jpg`, `.jpeg`, `.webp`)
-* **Vector Index**: Intelligent paragraph-aware chunking, provider embeddings (OpenAI `text-embedding-3-small`, Gemini `text-embedding-004`) with a deterministic local TF-IDF vectorizer fallback.
-* **Hybrid Search**: Cosine vector similarity combined with keyword matching for precision retrieval.
-
-### 4. Internet Access (Tavily Search)
-* Real-time web search tool integrated directly into the agent reasoning loop.
-* Toggle between Auto, Enabled, and Disabled.
-* Automatically triggers when questions require current news, prices, or live facts.
-* Provides direct answer summaries and cited source cards with links.
-
-### 5. Gmail IMAP Integration
-* Connect your Gmail using a 16-character [Google App Password](https://myaccount.google.com/apppasswords).
-* Query your inbox with natural language:
-  * *"Check my recent emails and summarize any important messages"*
-  * *"Search emails for invoices or receipts from this month"*
-  * *"Do I have any flight confirmations or meeting invitations?"*
-* Displays sender, subject, date, and body excerpts.
-
-### 6. Unified Context Fusion
-* Combine **AI Models + Chat History + Uploaded Documents + Live Web Search + Gmail Inbox** in a single prompt!
+* **Mid-Conversation Switching**: Seamlessly change AI models at any turn (e.g., start with Gemini Flash, switch to Claude Sonnet 5.5 for coding, and Grok 2 for research) while retaining full chat history.
+* **Per-Message Model Badges**: Every assistant reply displays an attribution badge identifying the exact model and provider that produced it.
 
 ---
 
-## 🚀 Getting Started
+### 3. ⚖️ LLM as a Judge (6-Dimension Evaluation & Refinement)
+* **Automated Audit**: Evaluates model responses across 6 industry-standard dimensions:
+  1. **Accuracy**: Factuality, precision, and verification against ground truth.
+  2. **Relevance**: Direct alignment with user's core intent.
+  3. **Completeness**: Depth of coverage and absence of missing details.
+  4. **Hallucination Prevention**: Strict verification against retrieved documents and live tool data.
+  5. **Tone & Style**: Clarity, professionalism, and conciseness.
+  6. **Citation Quality**: Precision of source quotes and links.
+* **Interactive Scorecard UI**:
+  * Displays Overall Score (e.g., `9.2/10`) and Verdict pill (`Excellent`, `Good`, `Needs Improvement`, `Critical Flaws`).
+  * Expandable progress bars and qualitative feedback for each metric.
+  * Executive critique and concrete recommendations.
+* **🔄 One-Click Response Improvement**:
+  * Click **"Improve (Regenerate)"** to immediately refine the answer using the Judge's specific critiques.
+  * Automatically re-scores the improved answer to show measurable quality gains.
+
+---
+
+### 4. Built-in Automatic RAG (Retrieval-Augmented Generation)
+* **Zero Configuration**: Attach files to your prompt or upload them to your personal Document Knowledge Base.
+* **Multi-Format Support**:
+  * **PDF** (`.pdf`)
+  * **Word Documents** (`.docx`, `.doc`)
+  * **PowerPoint** (`.pptx`, `.ppt`)
+  * **Spreadsheets & CSV** (`.csv`)
+  * **Code & Text** (`.txt`, `.md`, `.json`, `.py`, `.ts`, `.js`, etc.)
+  * **Images** (`.png`, `.jpg`, `.jpeg`, `.webp`)
+* **Vector Index**: Paragraph-aware chunking, provider embeddings (OpenAI `text-embedding-3-small`, Gemini `text-embedding-004`) with local TF-IDF vectorizer fallback.
+* **Hybrid Search**: Cosine similarity combined with keyword matching for precision context retrieval.
+
+---
+
+### 5. Internet Access & Gmail IMAP Tools
+* **Tavily Web Search**: Real-time web crawling with cited link cards. Triggers automatically when queries require current news, documentation, or facts.
+* **Gmail IMAP Integration**: Connect your Gmail inbox via a 16-character [Google App Password](https://myaccount.google.com/apppasswords) to search, read, and summarize emails with natural language queries:
+  * *"Summarize my unread emails from today"*
+  * *"Find invoice and receipt emails from this month"*
+  * *"Do I have any calendar invites or flight confirmations?"*
+
+---
+
+### 6. Intelligent Follow-Up Suggestions
+* Automatically generates **exactly 3 contextual follow-up questions** after every assistant reply to guide conversation flow.
+* One-click prompt pills to immediately continue the conversation.
+
+---
+
+### 7. Modern UI & Dark / Light Theme
+* **AskFlow Aesthetic**: Fluid ambient gradients, welcoming hero area with feature prompts, and clean typography.
+* **Theme Switching**: Dedicated Sun/Moon toggle with automatic system preference detection and `localStorage` persistence.
+* **Fully Responsive**: Collapsible desktop sidebar rail, touch-friendly mobile drawer menu, and auto-adapting layouts across phones, tablets, and wide monitors.
+
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
 * **Node.js** v18+ (tested on Node.js v22)
@@ -65,94 +92,124 @@ A complete, self-hosted AI harness with a ChatGPT/Gemini-style interface where u
 
 ### Installation
 
-From the root directory:
+Clone the repository and install all dependencies:
 ```bash
+git clone https://github.com/Anmolkrm0/AI-Harness.git
+cd AI-Harness
 npm run install:all
 ```
-*(Or install root, `server/`, and `client/` dependencies individually)*
 
-### Running the Application
+---
 
-#### Option A: Unified Fullstack Dev Mode (with Hot Reloading)
+### Running Locally
+
+#### Development Mode (Frontend HMR + Backend)
 ```bash
 npm run dev
 ```
-* **Frontend**: `http://localhost:5173` (Vite with instant HMR)
-* **Backend**: `http://localhost:3001` (Express API)
+* **Frontend**: `http://localhost:5173` (Vite dev server)
+* **Backend API**: `http://localhost:3001` (Express API)
 
-#### Option B: Production Server Mode
+#### Production Mode
 ```bash
 npm run build
 npm start
 ```
-* The Express server serves both the API and the optimized React frontend at `http://localhost:3001`.
+* Serves the compiled production frontend and API together at `http://localhost:3001`.
 
 ---
 
-## 🔑 Setting Up Gmail IMAP
+## 🔑 Service Configuration Guide
 
-To connect your Gmail inbox:
-1. Ensure **2-Step Verification** is enabled on your Google Account: [myaccount.google.com/security](https://myaccount.google.com/security)
-2. Go to **App Passwords**: [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-3. Enter an app name (e.g. `AI Harness`) and generate a 16-character password (e.g. `abcd efgh ijkl mnop`).
-4. In the AI Harness Setup screen, enter:
-   * **Email**: `your.email@gmail.com`
-   * **Password**: The 16-character App Password
-5. Click **Test Connection** to verify that your inbox is reached and unread emails can be listed!
+Upon first login, click **Settings** or visit the **Connect Services** screen to enter your personal API keys:
 
----
+| Service | Where to Get Credentials |
+| :--- | :--- |
+| **OpenAI** | [platform.openai.com/api-keys](https://platform.openai.com/api-keys) |
+| **Anthropic** | [console.anthropic.com/settings/keys](https://console.anthropic.com/settings/keys) |
+| **Google Gemini** | [aistudio.google.com/app/apikey](https://aistudio.google.com/app/apikey) |
+| **xAI (Grok)** | [console.x.ai](https://console.x.ai) |
+| **Tavily Search** | [app.tavily.com](https://app.tavily.com) |
+| **Gmail IMAP** | Generate a 16-char App Password at [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) |
 
-## 🧪 Running Automated Tests
-
-To run the automated test suite verifying database storage, multi-format document parsing, semantic chunking, vector similarity search, and model registry mappings:
-
-```bash
-cd server
-npx tsx test/test_all.ts
-```
+> [!NOTE]
+> Every service includes a **"Test Connection"** button that validates your credentials in real-time, displays ping latency, and verifies folder or API access before saving.
 
 ---
 
-## 📂 Project Architecture
+## ☁️ Deployment Guide (Render.com)
+
+AI Harness is configured for instant deployment on [Render](https://render.com) as a single Web Service:
+
+1. **Create Web Service** on Render and link your GitHub repository: `https://github.com/Anmolkrm0/AI-Harness`.
+2. Configure settings:
+   * **Environment**: `Node`
+   * **Node Version**: `22.14.0` (set in environment variable `NODE_VERSION=22.14.0`)
+   * **Build Command**:
+     ```bash
+     npm run build
+     ```
+   * **Start Command**:
+     ```bash
+     npm start
+     ```
+3. **Persistent Disk (Optional but Recommended)**:
+   * Mount a disk at `/server/data` to persist user accounts, chat histories, and SQLite databases across service restarts.
+
+---
+
+## 📂 Project Structure
 
 ```
 AI-Harness/
-├── package.json               # Root scripts (dev, build, start)
+├── package.json               # Root scripts (dev, build, start, install:all)
 ├── server/                    # Node.js + Express backend
 │   ├── src/
-│   │   ├── index.ts           # Express server entry point & static client server
+│   │   ├── index.ts           # Server entry point & static SPA router
+│   │   ├── middleware/
+│   │   │   └── auth.ts        # Bearer token tenant authentication middleware
 │   │   ├── db/
-│   │   │   └── index.ts       # SQLite database (settings, chats, messages, chunks)
+│   │   │   └── index.ts       # SQLite database (users, sessions, user_settings, chats, chunks)
 │   │   ├── services/
-│   │   │   ├── providers/     # OpenAI, Anthropic, Gemini, xAI unified streaming
+│   │   │   ├── providers/     # OpenAI, Claude, Gemini, Grok unified model registry
 │   │   │   ├── rag/           # Parser, chunker, embedder, vectorStore
-│   │   │   ├── tools/         # Tavily web search, Gmail IMAP client, agent coordinator
-│   │   │   └── testConnection.ts # Live testing for all 6 integrations
+│   │   │   └── tools/         # Tavily search, Gmail IMAP client, Question Suggester, LLM Judge
 │   │   └── routes/
-│   │       ├── settings.ts    # Credentials & connection testing
-│   │       ├── conversations.ts # CRUD for conversations & history
-│   │       ├── documents.ts   # Upload & RAG indexing
-│   │       └── chat.ts        # SSE streaming chat completions
+│   │       ├── auth.ts        # User registration, login, logout, me
+│   │       ├── settings.ts    # Tenant-scoped API keys & connection test
+│   │       ├── conversations.ts # Tenant-isolated conversations CRUD
+│   │       ├── documents.ts   # Private RAG document upload & management
+│   │       └── chat.ts        # SSE streaming completions, evaluation, improvement
 │   └── test/
 │       └── test_all.ts        # Automated verification tests
 └── client/                    # Vite + React 18 + Tailwind CSS frontend
     ├── src/
-    │   ├── App.tsx            # Main application coordinator (responsive layout)
+    │   ├── App.tsx            # Main layout, auth guard, dark/light theme
     │   ├── types.ts           # Shared TypeScript interfaces
     │   ├── components/
-    │   │   ├── SetupScreen.tsx       # Connect Services onboarding & settings modal
-    │   │   ├── Sidebar.tsx           # History, search, new chat, mobile drawer
-    │   │   ├── ChatArea.tsx          # Chat feed, model badges, tool activity pills
-    │   │   ├── ChatInput.tsx         # Responsive input bar, attachment dropzone, toggles
-    │   │   ├── ModelSelector.tsx     # Mid-conversation model switcher
+    │   │   ├── AuthModal.tsx         # Sign in / Register modal with data isolation guarantee
+    │   │   ├── SetupScreen.tsx       # Connect Services & credentials configuration
+    │   │   ├── Sidebar.tsx           # Conversations, search, user profile, sign out
+    │   │   ├── ChatArea.tsx          # Chat feed, message badges, tool status pills
+    │   │   ├── ChatInput.tsx         # Input bar, attachment dropzone, web/gmail/judge toggles
+    │   │   ├── ModelSelector.tsx     # Dynamic mid-chat model switcher
+    │   │   ├── JudgeScorecard.tsx    # Interactive 6-dimension evaluation scorecard & refine
     │   │   ├── DocumentDrawer.tsx    # Uploaded documents & RAG status
     │   │   └── MarkdownRenderer.tsx  # Code syntax highlighting & markdown tables
     │   └── services/
-    │       └── api.ts               # REST API & SSE streaming reader
+    │       └── api.ts                # REST API client & SSE streaming reader
 ```
 
 ---
 
-## 🔒 Privacy & Security
+## 🔒 Security & Data Privacy
 
-All your configured API keys, Gmail credentials, conversation histories, and uploaded document embeddings are stored **locally in SQLite** on your machine (`server/data/harness.db`). Credentials are never sent anywhere except directly to the official provider endpoints during live requests.
+* **Strict Isolation**: Each user's API keys, chat histories, uploaded files, and emails are strictly isolated to their own account.
+* **Encrypted Credentials**: Stored securely in SQLite (`server/data/harness.db`) using salted PBKDF2 with SHA-512.
+* **Zero Telemetry**: No user data or keys are sent to third parties. API calls are sent directly and solely to the official provider APIs (OpenAI, Anthropic, Google, xAI, Tavily, Google IMAP).
+
+---
+
+## 📄 License
+
+MIT License. Free to use, modify, and distribute for personal or commercial projects.
