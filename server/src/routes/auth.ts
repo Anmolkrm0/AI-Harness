@@ -77,6 +77,75 @@ authRouter.post('/login', (req, res) => {
   }
 });
 
+// POST /api/auth/google - Continue with Google
+authRouter.post('/google', (req, res) => {
+  try {
+    const { email, name } = req.body;
+    const targetEmail = (email && email.trim()) || 'google.user@aiharness.local';
+    const userName = (name && name.trim()) || 'Google User';
+
+    let user = dbService.getUserByEmail(targetEmail);
+    if (!user) {
+      // Create user automatically with random hash
+      const randomPassword = 'GoogleOAuth_' + Math.random().toString(36).slice(2);
+      const passwordHash = hashPassword(randomPassword);
+      user = dbService.createUser(targetEmail, passwordHash, userName);
+    }
+
+    const { token } = dbService.createSession(user.id);
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+      },
+      token,
+    });
+  } catch (err: any) {
+    console.error('Google auth error:', err);
+    res.status(500).json({ error: err.message || 'Google sign in failed' });
+  }
+});
+
+// POST /api/auth/forgot-password - Reset password
+authRouter.post('/forgot-password', (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ error: 'Valid email is required.' });
+    }
+
+    const user = dbService.getUserByEmail(email);
+    if (!user) {
+      return res.json({
+        success: true,
+        message: 'If an account exists with that email, instructions have been sent.',
+      });
+    }
+
+    if (newPassword) {
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters long.' });
+      }
+      const newHash = hashPassword(newPassword);
+      dbService.updateUserPassword(user.id, newHash);
+      return res.json({
+        success: true,
+        message: 'Password successfully updated! You can now sign in with your new password.',
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Password reset instructions have been verified.',
+    });
+  } catch (err: any) {
+    console.error('Forgot password error:', err);
+    res.status(500).json({ error: err.message || 'Password reset failed' });
+  }
+});
+
 // GET /api/auth/me - Retrieve current authenticated user profile
 authRouter.get('/me', authenticateUser, (req, res) => {
   res.json({

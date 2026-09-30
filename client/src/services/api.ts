@@ -62,6 +62,34 @@ export const api = {
     return data;
   },
 
+  async loginWithGoogle(email?: string, name?: string): Promise<AuthResponse> {
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Google sign in failed' }));
+      throw new Error(err.error || 'Google sign in failed');
+    }
+    const data: AuthResponse = await res.json();
+    tokenStorage.set(data.token);
+    return data;
+  },
+
+  async forgotPassword(email: string, newPassword?: string): Promise<{ success: boolean; message: string }> {
+    const res = await fetch('/api/auth/forgot-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, newPassword }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Password reset request failed' }));
+      throw new Error(err.error || 'Password reset request failed');
+    }
+    return res.json();
+  },
+
   async register(email: string, password: string, name?: string): Promise<AuthResponse> {
     const res = await fetch('/api/auth/register', {
       method: 'POST',

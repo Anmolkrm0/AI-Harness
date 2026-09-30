@@ -289,6 +289,10 @@ export const dbService = {
     return row || null;
   },
 
+  updateUserPassword: (userId: string, newPasswordHash: string): void => {
+    db.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?').run(newPasswordHash, Date.now(), userId);
+  },
+
   // Session Management
   createSession: (userId: string, durationDays = 30): { token: string; expires_at: number } => {
     const token = crypto.randomBytes(32).toString('hex');

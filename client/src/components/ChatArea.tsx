@@ -96,7 +96,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
       {messages.length === 0 ? (
         /* Empty State / Welcome Screen matching AskFlow reference design */
-        <div className="max-w-3xl mx-auto my-auto py-8 sm:py-16 flex flex-col items-center text-center space-y-7 sm:space-y-9 relative z-10">
+        <div className="max-w-3xl mx-auto my-auto py-6 sm:py-12 flex flex-col items-center text-center space-y-6 sm:space-y-8 relative z-0">
           {/* Waving Hand Emoji */}
           <div className="flex flex-col items-center space-y-3">
             <span className="text-4xl sm:text-5xl select-none animate-wave">👋</span>

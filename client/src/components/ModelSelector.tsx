@@ -81,22 +81,34 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         />
       </button>
 
+      {/* Backdrop overlay prevents click-through, closes dropdown on click outside, and dims overlapping screen content */}
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-[calc(100vw-32px)] sm:w-80 max-w-sm max-h-96 overflow-y-auto rounded-2xl bg-white dark:bg-[#1a1a20] border border-slate-200 dark:border-zinc-750 shadow-2xl p-2 z-50 divide-y divide-slate-100 dark:divide-zinc-800 backdrop-blur-md">
-          <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400 flex items-center justify-between">
-            <span>SWITCH MODEL</span>
+        <div
+          className="fixed inset-0 z-40 bg-black/20 dark:bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {isOpen && (
+        <div className="absolute left-0 top-full mt-2 w-[calc(100vw-32px)] sm:w-96 max-w-sm max-h-[75vh] flex flex-col rounded-2xl bg-white dark:bg-[#18181D] border border-slate-200/90 dark:border-zinc-800 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+          {/* Header bar pinned to top so it never scrolls away or gets cut off */}
+          <div className="px-4 py-3 bg-slate-50/90 dark:bg-zinc-850 border-b border-slate-100 dark:border-zinc-800 flex items-center justify-between shrink-0">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400">
+              SWITCH AI MODEL
+            </span>
             <button
               onClick={() => {
                 setIsOpen(false);
                 onOpenSettings();
               }}
-              className="text-[#5B50E6] dark:text-indigo-400 hover:underline text-[11px] font-medium"
+              className="text-[#5B50E6] dark:text-indigo-400 hover:underline text-xs font-semibold"
             >
               Configure Keys
             </button>
           </div>
 
-          <div className="py-1 space-y-1">
+          {/* Scrollable list of models */}
+          <div className="overflow-y-auto p-2 space-y-1 divide-y divide-slate-100/60 dark:divide-zinc-800/60 overscroll-contain">
             {models.map((model) => {
               const isSelected = model.id === selectedModelId;
               return (

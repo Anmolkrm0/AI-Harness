@@ -573,7 +573,7 @@ export function App() {
       {/* Main Workspace Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
         {/* Top Header Bar matching AskFlow design */}
-        <header className="h-14 border-b border-slate-200/80 dark:border-zinc-800/80 px-3 sm:px-6 flex items-center justify-between bg-white/70 dark:bg-[#141418]/70 backdrop-blur-md shrink-0 z-10 transition-colors">
+        <header className="h-14 border-b border-slate-200/80 dark:border-zinc-800/80 px-3 sm:px-6 flex items-center justify-between bg-white/80 dark:bg-[#141418]/80 backdrop-blur-md shrink-0 relative z-30 transition-colors">
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Mobile Hamburger Menu Toggle */}
             <button
