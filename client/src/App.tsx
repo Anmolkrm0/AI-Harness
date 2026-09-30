@@ -6,6 +6,8 @@ import {
   Sun,
   Moon,
   Plus,
+  Sparkles,
+  Loader2,
 } from 'lucide-react';
 import {
   Conversation,
@@ -14,6 +16,7 @@ import {
   ModelInfo,
   ServiceStatus,
   ToolEvent,
+  User,
 } from './types';
 import { api } from './services/api';
 import { Sidebar } from './components/Sidebar';
@@ -22,8 +25,14 @@ import { ModelSelector } from './components/ModelSelector';
 import { ChatArea } from './components/ChatArea';
 import { ChatInput } from './components/ChatInput';
 import { DocumentDrawer } from './components/DocumentDrawer';
+import { AuthModal } from './components/AuthModal';
 
 export function App() {
+  // Authentication & multi-user state
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
+
   // Theme state ('light' | 'dark')
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const saved = localStorage.getItem('theme');
@@ -69,13 +78,57 @@ export function App() {
     setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Load initial settings and data
+  // Verify authentication on mount
   useEffect(() => {
-    loadSettings();
-    loadModels();
-    loadConversations();
-    loadDocuments();
+    checkAuth();
   }, []);
+
+  const checkAuth = async () => {
+    setIsAuthLoading(true);
+    try {
+      const user = await api.getCurrentUser();
+      if (user) {
+        setCurrentUser(user);
+        await loadUserData();
+      } else {
+        setCurrentUser(null);
+        setShowAuthModal(true);
+      }
+    } catch (err) {
+      console.error('Auth verification error:', err);
+      setCurrentUser(null);
+      setShowAuthModal(true);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const loadUserData = async () => {
+    await Promise.all([
+      loadSettings(),
+      loadModels(),
+      loadConversations(),
+      loadDocuments(),
+    ]);
+  };
+
+  const handleAuthSuccess = async (user: User) => {
+    setCurrentUser(user);
+    setShowAuthModal(false);
+    await loadUserData();
+  };
+
+  const handleLogout = async () => {
+    await api.logout();
+    setCurrentUser(null);
+    setConversations([]);
+    setActiveConversationId(null);
+    setMessages([]);
+    setDocuments([]);
+    setServiceStatus(null);
+    setHasAnyModelConfigured(false);
+    setShowAuthModal(true);
+  };
 
   const loadSettings = async () => {
     try {
@@ -445,7 +498,38 @@ export function App() {
     });
   };
 
-  // If first visit and no models configured, show onboarding setup page
+  // While verifying session, show clean loading screen
+  if (isAuthLoading) {
+    return (
+      <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#FAFBFD] dark:bg-[#0E0E12] text-slate-800 dark:text-zinc-200">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 mb-4 animate-pulse">
+          <Sparkles className="w-7 h-7 text-white" />
+        </div>
+        <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">
+          AI Harness
+        </h2>
+        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-zinc-400">
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-indigo-500" />
+          <span>Initializing secure workspace...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // If not logged in, show AuthModal gate
+  if (!currentUser) {
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-[#FAFBFD] dark:bg-[#0E0E12]">
+        <AuthModal
+          isOpen={true}
+          onSuccess={handleAuthSuccess}
+          canDismiss={false}
+        />
+      </div>
+    );
+  }
+
+  // If first visit and no models configured, show onboarding setup page for this user
   if (isFirstVisit && !hasAnyModelConfigured) {
     return (
       <SetupScreen
@@ -481,6 +565,9 @@ export function App() {
           setActiveConversationId(null);
           setMessages([]);
         }}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onOpenAuthModal={() => setShowAuthModal(true)}
       />
 
       {/* Main Workspace Area */}
@@ -551,12 +638,13 @@ export function App() {
               <Settings className="w-4 h-4" />
             </button>
 
-            {/* User Profile Avatar matching reference image */}
+            {/* User Profile Avatar */}
             <div
-              className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-200 via-rose-200 to-indigo-200 border border-slate-200 dark:border-zinc-700 flex items-center justify-center text-sm shadow-2xs select-none cursor-pointer hover:scale-105 transition-transform"
-              title="User Account"
+              onClick={() => setShowAuthModal(true)}
+              className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 border border-indigo-400/30 flex items-center justify-center text-xs font-bold text-white shadow-2xs select-none cursor-pointer hover:scale-105 transition-transform"
+              title={currentUser ? `${currentUser.name || currentUser.email} (Click to switch account)` : 'Sign In'}
             >
-              😎
+              {(currentUser?.name?.[0] || currentUser?.email?.[0] || 'U').toUpperCase()}
             </div>
           </div>
         </header>
@@ -619,6 +707,14 @@ export function App() {
           />
         </div>
       )}
+
+      {/* Account / Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onSuccess={handleAuthSuccess}
+        canDismiss={!!currentUser}
+      />
     </div>
   );
 }

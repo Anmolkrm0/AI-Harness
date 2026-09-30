@@ -51,8 +51,8 @@ export class VectorStore {
   /**
    * Performs hybrid search across document chunks.
    */
-  static async search(query: string, conversationId?: string, topK = 5): Promise<SearchResult[]> {
-    const chunks = dbService.getAllChunks(conversationId);
+  static async search(query: string, conversationId?: string, topK = 5, userId?: string): Promise<SearchResult[]> {
+    const chunks = dbService.getAllChunks(userId, conversationId);
     if (chunks.length === 0) return [];
 
     const queryEmbedding = await EmbedderService.getQueryEmbedding(query);

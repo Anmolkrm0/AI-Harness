@@ -16,8 +16,9 @@ import {
   PanelLeftOpen,
   MessageSquare,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
-import { Conversation, ServiceStatus } from '../types';
+import { Conversation, ServiceStatus, User } from '../types';
 
 interface SidebarProps {
   conversations: Conversation[];
@@ -34,6 +35,9 @@ interface SidebarProps {
   onCloseMobile: () => void;
   onOpenLibrary?: () => void;
   onGoHome?: () => void;
+  currentUser?: User | null;
+  onLogout?: () => void;
+  onOpenAuthModal?: () => void;
 }
 
 // AskFlow Iris Logo Component matching reference image
@@ -70,6 +74,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCloseMobile,
   onOpenLibrary,
   onGoHome,
+  currentUser,
+  onLogout,
+  onOpenAuthModal,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchInput, setShowSearchInput] = useState(false);
@@ -397,16 +404,52 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Bottom Nav matching AskFlow design: Account & Settings */}
       <div className="p-3 border-t border-slate-200/80 dark:border-zinc-800/80 space-y-1">
-        {/* Account Button */}
-        <div className="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800/70 transition-colors cursor-pointer">
-          <div className="flex items-center gap-2.5">
-            <UserCircle className="w-4 h-4 text-slate-400 dark:text-zinc-400" />
-            <span className="text-xs sm:text-sm">Account</span>
+        {/* Account Button / User Profile */}
+        {currentUser ? (
+          <div className="flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800/70 transition-colors group">
+            <div className="flex items-center gap-2.5 min-w-0 pr-1">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-[11px] font-bold shrink-0 shadow-sm">
+                {(currentUser.name?.[0] || currentUser.email[0] || 'U').toUpperCase()}
+              </div>
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-semibold truncate text-slate-800 dark:text-zinc-200 leading-tight">
+                  {currentUser.name || currentUser.email.split('@')[0]}
+                </span>
+                <span className="text-[10px] text-slate-400 dark:text-zinc-500 truncate leading-tight">
+                  {currentUser.email}
+                </span>
+              </div>
+            </div>
+            {onLogout && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onLogout();
+                }}
+                title="Sign Out"
+                className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-slate-200 dark:hover:bg-zinc-700 transition-colors shrink-0"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
-          <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
-            Workspace
-          </span>
-        </div>
+        ) : (
+          <button
+            onClick={() => {
+              onOpenAuthModal?.();
+              onCloseMobile();
+            }}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium text-slate-700 dark:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800/70 transition-colors"
+          >
+            <div className="flex items-center gap-2.5">
+              <UserCircle className="w-4 h-4 text-slate-400 dark:text-zinc-400" />
+              <span className="text-xs sm:text-sm">Sign In</span>
+            </div>
+            <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/50 px-1.5 py-0.5 rounded">
+              Login
+            </span>
+          </button>
+        )}
 
         {/* Settings Button */}
         <button

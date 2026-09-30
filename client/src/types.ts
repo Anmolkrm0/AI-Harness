@@ -118,3 +118,15 @@ export interface ToolEvent {
   title: string;
   data?: any;
 }
+
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+  created_at?: number;
+}
+
+export interface AuthResponse {
+  user: User;
+  token: string;
+}

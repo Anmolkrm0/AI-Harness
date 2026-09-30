@@ -15,6 +15,7 @@ export interface AgentContextEvent {
 export interface AgentRunOptions {
   modelId: string;
   conversationId: string;
+  userId?: string;
   userMessage: string;
   history: ChatMessage[];
   enableWeb?: boolean;
@@ -60,9 +61,9 @@ export class AgentCoordinator {
 You have access to conversation history, uploaded documents via built-in RAG, real-time internet search via Tavily, and Gmail inbox access via IMAP.
 When using external sources, cite them clearly and provide well-structured, actionable answers.\n\n`;
 
-    // 1. Check Document RAG
+    // 1. Check Document RAG (isolated by userId)
     try {
-      const ragResults = await VectorStore.search(options.userMessage, options.conversationId, 5);
+      const ragResults = await VectorStore.search(options.userMessage, options.conversationId, 5, options.userId);
       if (ragResults.length > 0) {
         options.onToolEvent?.({
           type: 'rag',
@@ -90,8 +91,8 @@ When using external sources, cite them clearly and provide well-structured, acti
       console.warn('RAG search error:', err.message);
     }
 
-    // 2. Check Tavily Web Search
-    const tavilyKey = dbService.getSetting('tavily_key');
+    // 2. Check Tavily Web Search (using authenticated user's key)
+    const tavilyKey = options.userId ? dbService.getUserSetting(options.userId, 'tavily_key') : dbService.getSetting('tavily_key');
     if (tavilyKey && this.shouldSearchWeb(options.userMessage, options.enableWeb)) {
       try {
         options.onToolEvent?.({
@@ -126,9 +127,12 @@ When using external sources, cite them clearly and provide well-structured, acti
       }
     }
 
-    // 3. Check Gmail Search
-    const gmailUser = dbService.getSetting('gmail_user');
-    const gmailPass = dbService.getSetting('gmail_pass');
+    // 3. Check Gmail Search (using authenticated user's credentials)
+    const gmailUser = options.userId ? dbService.getUserSetting(options.userId, 'gmail_user') : dbService.getSetting('gmail_user');
+    const gmailPass = options.userId ? dbService.getUserSetting(options.userId, 'gmail_pass') : dbService.getSetting('gmail_pass');
+    const gmailHost = (options.userId ? dbService.getUserSetting(options.userId, 'gmail_host') : dbService.getSetting('gmail_host')) || 'imap.gmail.com';
+    const gmailPort = Number((options.userId ? dbService.getUserSetting(options.userId, 'gmail_port') : dbService.getSetting('gmail_port')) || 993);
+
     if (gmailUser && gmailPass && this.shouldSearchGmail(options.userMessage, options.enableGmail)) {
       try {
         options.onToolEvent?.({
@@ -141,8 +145,8 @@ When using external sources, cite them clearly and provide well-structured, acti
           {
             user: gmailUser,
             pass: gmailPass,
-            host: dbService.getSetting('gmail_host') || 'imap.gmail.com',
-            port: Number(dbService.getSetting('gmail_port')) || 993,
+            host: gmailHost,
+            port: gmailPort,
           },
           options.userMessage,
           5
@@ -177,12 +181,13 @@ When using external sources, cite them clearly and provide well-structured, acti
       { role: 'user', content: options.userMessage },
     ];
 
-    // Stream LLM response
+    // Stream LLM response using authenticated user's personal API credentials
     await ModelRegistry.streamResponse({
       modelId: options.modelId,
       messages: messagesToSend,
       systemPrompt: systemContext,
       callbacks: options.callbacks,
+      userId: options.userId,
     });
 
     return { toolCalls: executedTools };

@@ -10,21 +10,27 @@ import { LLMJudge, JudgeEvaluation } from '../services/tools/judge.js';
 export const chatRouter = Router();
 
 chatRouter.post('/stream', async (req, res) => {
+  const userId = req.user?.id;
   const { conversationId, message, model: requestedModel, enableWeb, enableGmail, enableJudge, attachments } = req.body;
 
   if (!conversationId || !message) {
     return res.status(400).json({ error: 'conversationId and message are required' });
   }
 
-  // Ensure conversation exists
-  let conv = dbService.getConversation(conversationId);
+  // Ensure conversation belongs to the authenticated user
+  const existingConv = dbService.getConversation(conversationId);
+  if (existingConv && existingConv.user_id && existingConv.user_id !== userId) {
+    return res.status(403).json({ error: 'Access denied: Conversation belongs to another user' });
+  }
+
+  let conv = dbService.getConversation(conversationId, userId);
   const activeModel = requestedModel || conv?.model || 'gemini-flash-latest';
 
   if (!conv) {
-    conv = dbService.createConversation(conversationId, message.slice(0, 40), activeModel);
+    conv = dbService.createConversation(conversationId, message.slice(0, 40), activeModel, userId);
   } else if (requestedModel && requestedModel !== conv.model) {
     // Persist model switch for the conversation
-    dbService.updateConversation(conversationId, { model: requestedModel });
+    dbService.updateConversation(conversationId, { model: requestedModel }, userId);
   }
 
   const modelInfo = ModelRegistry.getModel(activeModel);
@@ -88,6 +94,7 @@ chatRouter.post('/stream', async (req, res) => {
       history,
       enableWeb,
       enableGmail,
+      userId,
       onToolEvent: (event) => {
         sendSSE({ type: 'tool_event', event });
       },
@@ -116,7 +123,7 @@ chatRouter.post('/stream', async (req, res) => {
     let suggestedQuestions: string[] = [];
     if (fullAssistantText.trim().length > 10) {
       try {
-        suggestedQuestions = await QuestionSuggester.suggest(message, fullAssistantText, activeModel);
+        suggestedQuestions = await QuestionSuggester.suggest(message, fullAssistantText, activeModel, userId);
       } catch (err: any) {
         console.warn('Suggested questions generation warning:', err.message);
       }
@@ -129,7 +136,9 @@ chatRouter.post('/stream', async (req, res) => {
         judgeEvaluation = await LLMJudge.evaluate(
           message,
           fullAssistantText,
-          { toolsUsed: finalToolCalls, documents: attachments }
+          { toolsUsed: finalToolCalls, documents: attachments },
+          undefined,
+          userId
         );
       } catch (err: any) {
         console.warn('Judge evaluation error:', err.message);
@@ -191,13 +200,19 @@ chatRouter.post('/stream', async (req, res) => {
 // POST /api/chat/evaluate - On-demand evaluation with LLM as a Judge
 chatRouter.post('/evaluate', async (req, res) => {
   try {
+    const userId = req.user?.id;
     const { messageId, conversationId, judgeModel } = req.body;
     if (!messageId || !conversationId) {
       return res.status(400).json({ error: 'messageId and conversationId are required' });
     }
 
+    const conv = dbService.getConversation(conversationId, userId);
+    if (!conv) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
     const msg = dbService.getMessage(messageId);
-    if (!msg || !msg.content) {
+    if (!msg || !msg.content || msg.conversation_id !== conversationId) {
       return res.status(404).json({ error: 'Message not found' });
     }
 
@@ -217,7 +232,8 @@ chatRouter.post('/evaluate', async (req, res) => {
       userPrompt,
       msg.content,
       { toolsUsed },
-      judgeModel
+      judgeModel,
+      userId
     );
 
     dbService.updateMessage(messageId, { judge_evaluation: evaluation });
@@ -232,13 +248,19 @@ chatRouter.post('/evaluate', async (req, res) => {
 // POST /api/chat/improve - Regenerate & improve response using Judge feedback
 chatRouter.post('/improve', async (req, res) => {
   try {
+    const userId = req.user?.id;
     const { messageId, conversationId, targetModel } = req.body;
     if (!messageId || !conversationId) {
       return res.status(400).json({ error: 'messageId and conversationId are required' });
     }
 
+    const conv = dbService.getConversation(conversationId, userId);
+    if (!conv) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
     const msg = dbService.getMessage(messageId);
-    if (!msg || !msg.content) {
+    if (!msg || !msg.content || msg.conversation_id !== conversationId) {
       return res.status(404).json({ error: 'Message not found' });
     }
 
@@ -254,18 +276,20 @@ chatRouter.post('/improve', async (req, res) => {
 
     let evaluation = msg.judge_evaluation ? JSON.parse(msg.judge_evaluation) : null;
     if (!evaluation) {
-      evaluation = await LLMJudge.evaluate(userPrompt, msg.content);
+      evaluation = await LLMJudge.evaluate(userPrompt, msg.content, undefined, undefined, userId);
     }
 
     const improvedContent = await LLMJudge.improveResponse(
       userPrompt,
       msg.content,
       evaluation,
-      targetModel || msg.model_used || undefined
+      targetModel || msg.model_used || undefined,
+      undefined,
+      userId
     );
 
     // Re-evaluate to get an updated scorecard for the improved response
-    const newEvaluation = await LLMJudge.evaluate(userPrompt, improvedContent);
+    const newEvaluation = await LLMJudge.evaluate(userPrompt, improvedContent, undefined, undefined, userId);
 
     dbService.updateMessage(messageId, {
       content: improvedContent,

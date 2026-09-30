@@ -27,13 +27,14 @@ const upload = multer({
   },
 });
 
-// POST upload and index document
+// POST upload and index document for authenticated user
 documentsRouter.post('/upload', upload.single('file'), async (req, res) => {
   const file = req.file;
   if (!file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
 
+  const userId = req.user?.id;
   const conversationId = req.body.conversationId || null;
   const docId = crypto.randomUUID();
 
@@ -41,9 +42,10 @@ documentsRouter.post('/upload', upload.single('file'), async (req, res) => {
     // 1. Parse document text
     const parsed = await DocumentParser.parseFile(file.path, file.originalname, file.mimetype);
 
-    // 2. Save document record in DB
+    // 2. Save document record in DB with tenant user_id
     const docRecord = dbService.addDocument({
       id: docId,
+      user_id: userId,
       conversation_id: conversationId,
       filename: file.originalname,
       mime_type: file.mimetype,
@@ -90,16 +92,36 @@ documentsRouter.post('/upload', upload.single('file'), async (req, res) => {
   }
 });
 
-// GET documents list
+// GET documents list for authenticated user
 documentsRouter.get('/', (req, res) => {
+  const userId = req.user?.id;
   const { conversationId } = req.query;
-  const docs = dbService.listDocuments(typeof conversationId === 'string' ? conversationId : undefined);
+  const docs = dbService.listDocuments(
+    userId,
+    typeof conversationId === 'string' ? conversationId : undefined
+  );
   res.json(docs);
 });
 
-// DELETE document
-documentsRouter.delete('/:id', (req, res) => {
+// GET single document (enforcing user ownership)
+documentsRouter.get('/:id', (req, res) => {
+  const userId = req.user?.id;
   const { id } = req.params;
-  dbService.deleteDocument(id);
+  const doc = dbService.getDocument(id, userId);
+  if (!doc) {
+    return res.status(404).json({ error: 'Document not found' });
+  }
+  res.json(doc);
+});
+
+// DELETE document (enforcing user ownership)
+documentsRouter.delete('/:id', (req, res) => {
+  const userId = req.user?.id;
+  const { id } = req.params;
+  const doc = dbService.getDocument(id, userId);
+  if (!doc) {
+    return res.status(404).json({ error: 'Document not found' });
+  }
+  dbService.deleteDocument(id, userId);
   res.json({ success: true, id });
 });

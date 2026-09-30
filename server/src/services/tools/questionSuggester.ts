@@ -7,7 +7,8 @@ export class QuestionSuggester {
   static async suggest(
     userMessage: string,
     assistantAnswer: string,
-    modelId?: string
+    modelId?: string,
+    userId?: string
   ): Promise<string[]> {
     if (!assistantAnswer || assistantAnswer.trim().length < 10) {
       return [];
@@ -15,7 +16,7 @@ export class QuestionSuggester {
 
     // Try generating with LLM within 2.5 seconds
     try {
-      const llmQuestions = await this.generateViaLLM(userMessage, assistantAnswer, modelId);
+      const llmQuestions = await this.generateViaLLM(userMessage, assistantAnswer, modelId, userId);
       if (llmQuestions && llmQuestions.length === 3) {
         return llmQuestions;
       }
@@ -29,7 +30,8 @@ export class QuestionSuggester {
   private static async generateViaLLM(
     userMessage: string,
     assistantAnswer: string,
-    modelId?: string
+    modelId?: string,
+    userId?: string
   ): Promise<string[] | null> {
     const prompt = `Based on the following user message and assistant answer, suggest exactly 3 natural, concise follow-up questions the user might ask next.
 Respond ONLY with a JSON array of 3 strings (e.g. ["Question 1?", "Question 2?", "Question 3?"]). Do not include markdown codeblocks or any additional explanation.
@@ -37,7 +39,7 @@ Respond ONLY with a JSON array of 3 strings (e.g. ["Question 1?", "Question 2?",
 User: ${userMessage.slice(0, 500)}
 Assistant: ${assistantAnswer.slice(0, 1500)}`;
 
-    const available = ModelRegistry.getAvailableModels();
+    const available = ModelRegistry.getAvailableModels(userId);
     const targetModel = available.find((m) => m.id === (modelId || 'gemini-flash-latest') && m.isConfigured);
     const configuredModel = targetModel || available.find((m) => m.isConfigured);
     if (!configuredModel) return null;
@@ -52,6 +54,7 @@ Assistant: ${assistantAnswer.slice(0, 1500)}`;
         modelId: effectiveModelId,
         messages: [{ role: 'user', content: prompt }],
         systemPrompt: 'You are an AI assistant that suggests next questions in strict JSON format.',
+        userId,
         callbacks: {
           onToken: (token) => {
             fullText += token;

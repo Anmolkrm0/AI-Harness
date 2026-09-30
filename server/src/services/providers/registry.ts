@@ -28,8 +28,8 @@ export class ModelRegistry {
     return undefined;
   }
 
-  static getAvailableModels(): (ModelInfo & { isConfigured: boolean })[] {
-    const settings = dbService.getAllSettings();
+  static getAvailableModels(userId?: string): (ModelInfo & { isConfigured: boolean })[] {
+    const settings = userId ? dbService.getUserSettings(userId) : dbService.getAllSettings();
     return SUPPORTED_MODELS.map((model) => {
       let isConfigured = false;
       if (model.provider === 'openai' && settings.openai_key) isConfigured = true;
@@ -43,7 +43,22 @@ export class ModelRegistry {
     });
   }
 
-  static getProviderKey(provider: string): string | null {
+  static getProviderKey(provider: string, userId?: string): string | null {
+    if (userId) {
+      switch (provider) {
+        case 'openai':
+          return dbService.getUserSetting(userId, 'openai_key');
+        case 'anthropic':
+          return dbService.getUserSetting(userId, 'anthropic_key');
+        case 'gemini':
+          return dbService.getUserSetting(userId, 'gemini_key');
+        case 'xai':
+          return dbService.getUserSetting(userId, 'xai_key');
+        default:
+          return null;
+      }
+    }
+
     switch (provider) {
       case 'openai':
         return dbService.getSetting('openai_key');
@@ -58,16 +73,16 @@ export class ModelRegistry {
     }
   }
 
-  static async streamResponse(options: ProviderStreamOptions): Promise<void> {
+  static async streamResponse(options: ProviderStreamOptions & { userId?: string }): Promise<void> {
     const model = this.getModel(options.modelId);
     if (!model) {
       throw new Error(`Model '${options.modelId}' is not supported. Please select a valid model.`);
     }
 
-    const apiKey = this.getProviderKey(model.provider);
+    const apiKey = this.getProviderKey(model.provider, options.userId);
     if (!apiKey) {
       throw new Error(
-        `API key for ${model.provider.toUpperCase()} is not configured. Please open Settings and add your API key.`
+        `API key for ${model.provider.toUpperCase()} is not configured. Please open Settings and add your personal API key.`
       );
     }
 

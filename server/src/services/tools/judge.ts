@@ -41,13 +41,14 @@ export class LLMJudge {
       toolsUsed?: any[];
       documents?: any[];
     },
-    preferredJudgeModelId?: string
+    preferredJudgeModelId?: string,
+    userId?: string
   ): Promise<JudgeEvaluation> {
     if (!assistantResponse || assistantResponse.trim().length < 5) {
       return this.generateEmptyEvaluation('No response content provided to evaluate.');
     }
 
-    const available = ModelRegistry.getAvailableModels();
+    const available = ModelRegistry.getAvailableModels(userId);
     // Choose the best configured reasoning model as the Judge (prefer Claude Sonnet or Gemini)
     const configuredModels = available.filter((m) => m.isConfigured);
     const chosenJudge =
@@ -66,7 +67,8 @@ export class LLMJudge {
           assistantResponse,
           chosenJudge.id,
           judgeModelName,
-          context
+          context,
+          userId
         );
         if (result) {
           return result;
@@ -89,9 +91,10 @@ export class LLMJudge {
     targetModelId?: string,
     callbacks?: {
       onToken?: (token: string) => void;
-    }
+    },
+    userId?: string
   ): Promise<string> {
-    const available = ModelRegistry.getAvailableModels();
+    const available = ModelRegistry.getAvailableModels(userId);
     const configured = available.filter((m) => m.isConfigured);
     const model =
       (targetModelId && configured.find((m) => m.id === targetModelId)) ||
@@ -159,7 +162,8 @@ ${evaluation.suggestedImprovements.map((tip) => `- ${tip}`).join('\n')}
     assistantResponse: string,
     judgeModelId: string,
     judgeModelName: string,
-    context?: { toolsUsed?: any[]; documents?: any[] }
+    context?: { toolsUsed?: any[]; documents?: any[] },
+    userId?: string
   ): Promise<JudgeEvaluation | null> {
     const hasTools = context?.toolsUsed && context.toolsUsed.length > 0;
     const hasDocs = context?.documents && context.documents.length > 0;
@@ -209,6 +213,7 @@ DO NOT include markdown backticks or any introductory text. Return only the JSON
         modelId: judgeModelId,
         messages: [{ role: 'user', content: judgePrompt }],
         systemPrompt: 'You are an objective AI evaluation judge that outputs strict JSON.',
+        userId,
         callbacks: {
           onToken: (token) => {
             buffer += token;
