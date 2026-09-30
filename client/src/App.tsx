@@ -3,6 +3,9 @@ import {
   Settings,
   Database,
   Menu,
+  Sun,
+  Moon,
+  Plus,
 } from 'lucide-react';
 import {
   Conversation,
@@ -21,6 +24,15 @@ import { ChatInput } from './components/ChatInput';
 import { DocumentDrawer } from './components/DocumentDrawer';
 
 export function App() {
+  // Theme state ('light' | 'dark')
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'light' || saved === 'dark') return saved;
+    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light';
+  });
+
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -40,6 +52,20 @@ export function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [activeToolEvents, setActiveToolEvents] = useState<ToolEvent[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Sync theme changes with DOM and localStorage
+  useEffect(() => {
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Load initial settings and data
   useEffect(() => {
@@ -383,8 +409,8 @@ export function App() {
   }
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#131314] text-zinc-100 font-sans">
-      {/* Responsive Sidebar (Collapsible desktop, Drawer mobile) */}
+    <div className="flex h-screen w-screen overflow-hidden bg-[#FAFBFD] dark:bg-[#0E0E12] text-slate-900 dark:text-zinc-100 font-sans transition-colors">
+      {/* Responsive Sidebar (Collapsible desktop rail, Drawer mobile) */}
       <Sidebar
         conversations={conversations}
         activeConversationId={activeConversationId}
@@ -398,18 +424,23 @@ export function App() {
         onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         isMobileOpen={isMobileSidebarOpen}
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
+        onOpenLibrary={() => setIsDocumentDrawerOpen(true)}
+        onGoHome={() => {
+          setActiveConversationId(null);
+          setMessages([]);
+        }}
       />
 
       {/* Main Workspace Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden relative">
-        {/* Top Header Bar */}
-        <header className="h-14 border-b border-zinc-800/80 px-3 sm:px-6 flex items-center justify-between bg-[#18181b]/70 backdrop-blur-md shrink-0 z-10">
+        {/* Top Header Bar matching AskFlow design */}
+        <header className="h-14 border-b border-slate-200/80 dark:border-zinc-800/80 px-3 sm:px-6 flex items-center justify-between bg-white/70 dark:bg-[#141418]/70 backdrop-blur-md shrink-0 z-10 transition-colors">
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Mobile Hamburger Menu Toggle */}
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="md:hidden p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
-              title="Open conversations menu"
+              className="md:hidden p-2 rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800 transition-colors"
+              title="Open menu"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -423,27 +454,58 @@ export function App() {
             />
           </div>
 
-          {/* Right Header Controls */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Right Header Controls matching AskFlow */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5">
+            {/* Quick "+ New Chats" button matching reference */}
+            <button
+              onClick={handleNewChat}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-200/90 dark:border-zinc-700 bg-white dark:bg-zinc-800 hover:bg-slate-50 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 text-xs sm:text-sm font-semibold shadow-2xs transition-all"
+              title="Start a new chat"
+            >
+              <Plus className="w-3.5 h-3.5 text-[#5B50E6] dark:text-indigo-400" />
+              <span className="hidden xs:inline sm:inline">New Chats</span>
+            </button>
+
             {/* Document RAG count pill */}
             <button
               onClick={() => setIsDocumentDrawerOpen(true)}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-zinc-800/60 hover:bg-zinc-800 border border-zinc-700/50 text-xs font-medium text-zinc-300 hover:text-white transition-colors"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100/80 hover:bg-slate-200/70 dark:bg-zinc-800/60 dark:hover:bg-zinc-800 border border-slate-200 dark:border-zinc-700/50 text-xs font-semibold text-slate-700 dark:text-zinc-300 transition-colors"
               title="View & upload documents for RAG"
             >
-              <Database className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+              <Database className="w-3.5 h-3.5 text-[#5B50E6] dark:text-sky-400 shrink-0" />
               <span>{documents.length}</span>
-              <span className="hidden sm:inline">Docs Indexed</span>
+              <span className="hidden sm:inline">Docs</span>
+            </button>
+
+            {/* Dark / Light Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800 transition-colors"
+              title={theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+            >
+              {theme === 'dark' ? (
+                <Sun className="w-4 h-4 text-amber-400" />
+              ) : (
+                <Moon className="w-4 h-4 text-slate-600" />
+              )}
             </button>
 
             {/* Settings & Credentials Launcher */}
             <button
               onClick={() => setShowSetupModal(true)}
-              className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 dark:text-zinc-400 dark:hover:text-white dark:hover:bg-zinc-800 transition-colors"
               title="Configure API Keys & Services"
             >
               <Settings className="w-4 h-4" />
             </button>
+
+            {/* User Profile Avatar matching reference image */}
+            <div
+              className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-200 via-rose-200 to-indigo-200 border border-slate-200 dark:border-zinc-700 flex items-center justify-center text-sm shadow-2xs select-none cursor-pointer hover:scale-105 transition-transform"
+              title="Morgan - Account"
+            >
+              😎
+            </div>
           </div>
         </header>
 
@@ -483,7 +545,7 @@ export function App() {
 
       {/* Connect Services / Setup Modal */}
       {showSetupModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/75 backdrop-blur-sm overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 dark:bg-black/75 backdrop-blur-sm overflow-y-auto">
           <SetupScreen
             status={serviceStatus}
             hasAnyModelConfigured={hasAnyModelConfigured}

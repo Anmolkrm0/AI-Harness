@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom modern scrollbars */
+/* Dynamic theme scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -13,17 +13,52 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: rgba(156, 163, 175, 0.4);
   border-radius: 9999px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #27272a;
+}
+
 ::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.6);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
   background: #3f3f46;
+}
+
+/* Hide scrollbar for clean chip sliders */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Wave animation for greeting emoji */
+@keyframes wave-hand {
+  0% { transform: rotate(0deg); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-8deg); }
+  30% { transform: rotate(14deg); }
+  40% { transform: rotate(-4deg); }
+  50% { transform: rotate(10deg); }
+  60% { transform: rotate(0deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.animate-wave {
+  animation: wave-hand 2.2s infinite ease-in-out;
+  transform-origin: 70% 70%;
+  display: inline-block;
 }
 
 body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  background-color: #131314;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }

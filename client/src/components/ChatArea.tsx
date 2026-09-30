@@ -57,97 +57,94 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
     return found ? found.name : modelId;
   };
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning, Morgan';
+    if (hour < 18) return 'Good Afternoon, Morgan';
+    return 'Good Evening, Morgan';
+  };
+
   const getProviderBadge = (provider?: string | null) => {
     switch (provider) {
       case 'openai':
-        return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+        return 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/30';
       case 'anthropic':
-        return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+        return 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/30';
       case 'gemini':
-        return 'text-sky-400 bg-sky-500/10 border-sky-500/30';
+        return 'text-indigo-700 bg-indigo-50 border-indigo-200 dark:text-sky-400 dark:bg-sky-500/10 dark:border-sky-500/30';
       case 'xai':
-        return 'text-zinc-200 bg-zinc-500/10 border-zinc-500/30';
+        return 'text-slate-700 bg-slate-100 border-slate-200 dark:text-zinc-200 dark:bg-zinc-500/10 dark:border-zinc-500/30';
       default:
-        return 'text-zinc-300 bg-zinc-700/50 border-zinc-600/50';
+        return 'text-slate-600 bg-slate-100 border-slate-200 dark:text-zinc-300 dark:bg-zinc-700/50 dark:border-zinc-600/50';
     }
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-2.5 sm:px-6 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6">
+    <div className="flex-1 overflow-y-auto px-3 sm:px-6 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 relative">
+      {/* Top ambient pastel mesh gradient aura matching reference image */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-96 bg-[radial-gradient(ellipse_70%_60%_at_50%_-10%,rgba(196,181,253,0.45)_0%,rgba(251,207,232,0.3)_35%,rgba(254,240,138,0.2)_65%,transparent_100%)] dark:bg-[radial-gradient(ellipse_70%_60%_at_50%_-10%,rgba(99,102,241,0.18)_0%,rgba(147,51,234,0.12)_35%,transparent_80%)] -z-0" />
+
       {messages.length === 0 ? (
-        /* Empty State / Welcome Screen */
-        <div className="max-w-2xl mx-auto my-auto py-8 sm:py-12 flex flex-col items-center text-center space-y-6 sm:space-y-8">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-xl shadow-sky-500/20">
-            <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-white" />
+        /* Empty State / Welcome Screen matching AskFlow reference design */
+        <div className="max-w-3xl mx-auto my-auto py-8 sm:py-16 flex flex-col items-center text-center space-y-7 sm:space-y-9 relative z-10">
+          {/* Waving Hand Emoji */}
+          <div className="flex flex-col items-center space-y-3">
+            <span className="text-4xl sm:text-5xl select-none animate-wave">👋</span>
+            <div className="space-y-1">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                {getGreeting()}
+              </h1>
+              <p className="text-base sm:text-xl font-medium text-slate-500 dark:text-zinc-400">
+                What are you thinking about?
+              </p>
+            </div>
           </div>
 
-          <div className="space-y-1.5 sm:space-y-2 px-2">
-            <h2 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-              Unified Multi-Model AI Harness
-            </h2>
-            <p className="text-xs sm:text-sm text-zinc-400 max-w-md mx-auto">
-              Switch seamlessly between Gemini, Claude, GPT, and Grok. Connect documents for RAG, search the web via Tavily, and query your Gmail inbox.
-            </p>
-          </div>
-
-          {/* Prompt Suggestions */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 w-full text-left">
+          {/* 3 Prompt Cards from the Reference Image */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4 w-full text-left">
+            {/* Card 1: Recipe */}
             <button
-              onClick={() => onPromptSuggestion('Search the web for the latest major AI breakthroughs this week and summarize them')}
-              className="p-3 sm:p-3.5 rounded-xl bg-[#1e1e22] hover:bg-[#26262a] border border-zinc-800 hover:border-zinc-700 transition-all text-xs space-y-1 group"
+              onClick={() => onPromptSuggestion('Invent a recipe that combines chocolate, coffee, and spicy peppers.')}
+              className="p-5 rounded-2xl bg-white/90 dark:bg-[#1a1a22]/90 backdrop-blur-sm border border-slate-200/80 dark:border-zinc-800/80 hover:border-indigo-400 dark:hover:border-zinc-700 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-h-[140px] text-left hover:-translate-y-0.5"
             >
-              <div className="flex items-center gap-2 text-sky-400 font-semibold">
-                <Globe className="w-3.5 h-3.5" />
-                <span>Internet Search</span>
+              <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-[#8B5CF6] font-mono text-sm font-bold mb-3">
+                I_
               </div>
-              <p className="text-zinc-400 group-hover:text-zinc-200 transition-colors">
-                "Search the web for the latest major AI breakthroughs this week"
+              <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-zinc-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-relaxed">
+                Invent a recipe that combines chocolate, coffee, and spicy peppers.
               </p>
             </button>
 
+            {/* Card 2: Company Party Email */}
             <button
-              onClick={() => onPromptSuggestion('Check my recent emails and summarize any important messages')}
-              className="p-3 sm:p-3.5 rounded-xl bg-[#1e1e22] hover:bg-[#26262a] border border-zinc-800 hover:border-zinc-700 transition-all text-xs space-y-1 group"
+              onClick={() => onPromptSuggestion('Create an email inviting colleagues to the annual company party.')}
+              className="p-5 rounded-2xl bg-white/90 dark:bg-[#1a1a22]/90 backdrop-blur-sm border border-slate-200/80 dark:border-zinc-800/80 hover:border-indigo-400 dark:hover:border-zinc-700 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-h-[140px] text-left hover:-translate-y-0.5"
             >
-              <div className="flex items-center gap-2 text-red-400 font-semibold">
-                <Mail className="w-3.5 h-3.5" />
-                <span>Gmail Inbox</span>
+              <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-[#5B50E6] dark:text-indigo-400 mb-3">
+                <Mail className="w-4 h-4" />
               </div>
-              <p className="text-zinc-400 group-hover:text-zinc-200 transition-colors">
-                "Check my recent emails and summarize important messages"
+              <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-zinc-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-relaxed">
+                Create an email inviting colleagues to the annual company party.
               </p>
             </button>
 
+            {/* Card 3: Portfolio Presentation */}
             <button
-              onClick={() => onPromptSuggestion('Compare the architecture, context window, and trade-offs of Gemini Flash vs Claude Sonnet 5.5')}
-              className="p-3 sm:p-3.5 rounded-xl bg-[#1e1e22] hover:bg-[#26262a] border border-zinc-800 hover:border-zinc-700 transition-all text-xs space-y-1 group"
+              onClick={() => onPromptSuggestion('Provide feedback for my photography portfolio presentation slides.')}
+              className="p-5 rounded-2xl bg-white/90 dark:bg-[#1a1a22]/90 backdrop-blur-sm border border-slate-200/80 dark:border-zinc-800/80 hover:border-indigo-400 dark:hover:border-zinc-700 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-h-[140px] text-left hover:-translate-y-0.5"
             >
-              <div className="flex items-center gap-2 text-amber-400 font-semibold">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Multi-Model Intelligence</span>
+              <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center text-[#7C3AED] dark:text-violet-400 mb-3">
+                <Sparkles className="w-4 h-4" />
               </div>
-              <p className="text-zinc-400 group-hover:text-zinc-200 transition-colors">
-                "Compare the strengths of Gemini Flash vs Claude Sonnet 5.5"
-              </p>
-            </button>
-
-            <button
-              onClick={() => onPromptSuggestion('Explain the key concepts and findings in my uploaded document')}
-              className="p-3 sm:p-3.5 rounded-xl bg-[#1e1e22] hover:bg-[#26262a] border border-zinc-800 hover:border-zinc-700 transition-all text-xs space-y-1 group"
-            >
-              <div className="flex items-center gap-2 text-emerald-400 font-semibold">
-                <FileText className="w-3.5 h-3.5" />
-                <span>Document RAG</span>
-              </div>
-              <p className="text-zinc-400 group-hover:text-zinc-200 transition-colors">
-                "Explain the key concepts and findings in my uploaded document"
+              <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-zinc-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-relaxed">
+                Provide feedback for my photography portfolio presentation slides.
               </p>
             </button>
           </div>
         </div>
       ) : (
         /* Messages Stream */
-        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6">
+        <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 relative z-10">
           {messages.map((msg, index) => {
             const isUser = msg.role === 'user';
             const modelName = getModelName(msg.model_used);
@@ -159,7 +156,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 className={`flex gap-2.5 sm:gap-3.5 ${isUser ? 'justify-end' : 'justify-start'}`}
               >
                 {!isUser && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-md shadow-sky-500/10">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-md shadow-indigo-500/15">
                     <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                 )}
@@ -169,11 +166,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                   {!isUser && (
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${providerClass}`}
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${providerClass}`}
                       >
                         {modelName}
                       </span>
-                      <span className="text-[10px] text-zinc-500">
+                      <span className="text-[10px] text-slate-400 dark:text-zinc-500">
                         {new Date(msg.created_at).toLocaleTimeString([], {
                           hour: '2-digit',
                           minute: '2-digit',
@@ -192,34 +189,34 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                         return (
                           <div
                             key={tIdx}
-                            className="rounded-xl border border-zinc-800 bg-[#1a1a1d] text-xs overflow-hidden"
+                            className="rounded-xl border border-slate-200 dark:border-zinc-800 bg-slate-50/80 dark:bg-[#1a1a1d] text-xs overflow-hidden"
                           >
                             <button
                               onClick={() => toggleToolExpand(expandKey)}
-                              className="w-full flex items-center justify-between px-3 py-1.5 text-zinc-400 hover:text-zinc-200 transition-colors"
+                              className="w-full flex items-center justify-between px-3 py-1.5 text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-zinc-200 transition-colors"
                             >
                               <div className="flex items-center gap-2 overflow-hidden text-left">
-                                {tc.tool === 'rag' && <FileText className="w-3.5 h-3.5 text-sky-400 shrink-0" />}
-                                {tc.tool === 'tavily' && <Globe className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
-                                {tc.tool === 'gmail' && <Mail className="w-3.5 h-3.5 text-red-400 shrink-0" />}
-                                <span className="font-medium text-[11px] capitalize truncate">
+                                {tc.tool === 'rag' && <FileText className="w-3.5 h-3.5 text-indigo-500 shrink-0" />}
+                                {tc.tool === 'tavily' && <Globe className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+                                {tc.tool === 'gmail' && <Mail className="w-3.5 h-3.5 text-red-500 shrink-0" />}
+                                <span className="font-semibold text-[11px] capitalize truncate">
                                   {tc.tool === 'rag' && `Document RAG (${tc.count} chunks)`}
                                   {tc.tool === 'tavily' && `Tavily Search: "${tc.query}" (${tc.resultsCount} sources)`}
                                   {tc.tool === 'gmail' && `Gmail IMAP (${tc.count} emails)`}
                                 </span>
                               </div>
                               {isExpanded ? (
-                                <ChevronUp className="w-3 h-3 text-zinc-500 shrink-0 ml-1" />
+                                <ChevronUp className="w-3 h-3 text-slate-400 dark:text-zinc-500 shrink-0 ml-1" />
                               ) : (
-                                <ChevronDown className="w-3 h-3 text-zinc-500 shrink-0 ml-1" />
+                                <ChevronDown className="w-3 h-3 text-slate-400 dark:text-zinc-500 shrink-0 ml-1" />
                               )}
                             </button>
 
                             {isExpanded && (
-                              <div className="p-3 border-t border-zinc-800/80 bg-[#161619] space-y-2 text-[11px] text-zinc-400">
+                              <div className="p-3 border-t border-slate-200 dark:border-zinc-800/80 bg-white dark:bg-[#161619] space-y-2 text-[11px] text-slate-600 dark:text-zinc-400">
                                 {tc.sources && tc.sources.length > 0 && (
                                   <div>
-                                    <p className="font-semibold text-zinc-300 mb-1">Sources:</p>
+                                    <p className="font-semibold text-slate-800 dark:text-zinc-300 mb-1">Sources:</p>
                                     <ul className="list-disc pl-4 space-y-0.5">
                                       {tc.sources.map((s: any, sIdx: number) => (
                                         <li key={sIdx} className="break-all">
@@ -230,7 +227,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                               href={s.url}
                                               target="_blank"
                                               rel="noreferrer"
-                                              className="text-sky-400 hover:underline flex items-center gap-1 inline-flex"
+                                              className="text-indigo-600 dark:text-sky-400 hover:underline flex items-center gap-1 inline-flex"
                                             >
                                               <span className="truncate max-w-[240px]">{s.title}</span> <ExternalLink className="w-2.5 h-2.5 shrink-0" />
                                             </a>
@@ -242,11 +239,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                                 )}
                                 {tc.emails && tc.emails.length > 0 && (
                                   <div>
-                                    <p className="font-semibold text-zinc-300 mb-1">Emails Referenced:</p>
+                                    <p className="font-semibold text-slate-800 dark:text-zinc-300 mb-1">Emails Referenced:</p>
                                     <ul className="list-disc pl-4 space-y-0.5">
                                       {tc.emails.map((e: any, eIdx: number) => (
                                         <li key={eIdx}>
-                                          <span className="text-zinc-200">{e.subject}</span> ({e.from})
+                                          <span className="text-slate-800 dark:text-zinc-200">{e.subject}</span> ({e.from})
                                         </li>
                                       ))}
                                     </ul>
@@ -262,19 +259,19 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
                   {/* Message Bubble */}
                   <div
-                    className={`rounded-2xl px-3.5 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm shadow-sm leading-relaxed ${
+                    className={`rounded-2xl px-4 py-3 text-xs sm:text-sm shadow-xs leading-relaxed ${
                       isUser
-                        ? 'bg-sky-600 text-white rounded-br-none ml-auto'
-                        : 'bg-[#1e1e22] text-zinc-100 rounded-bl-none border border-zinc-700/60'
+                        ? 'bg-[#5B50E6] text-white rounded-br-xs ml-auto shadow-md shadow-indigo-500/15'
+                        : 'bg-white dark:bg-[#1a1a22] text-slate-800 dark:text-zinc-100 rounded-bl-xs border border-slate-200/80 dark:border-zinc-800 shadow-xs'
                     }`}
                   >
                     {/* User attachments */}
                     {isUser && msg.attachments && msg.attachments.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 pb-2 mb-2 border-b border-sky-500/40">
+                      <div className="flex flex-wrap gap-1.5 pb-2 mb-2 border-b border-indigo-400/40">
                         {msg.attachments.map((a) => (
                           <div
                             key={a.id}
-                            className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-sky-700/80 text-[10px] sm:text-[11px] text-white"
+                            className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-indigo-700/80 text-[10px] sm:text-[11px] text-white"
                           >
                             <FileText className="w-3 h-3" />
                             <span className="truncate max-w-[120px]">{a.filename}</span>
@@ -290,13 +287,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                         {msg.content ? (
                           <MarkdownRenderer content={msg.content} />
                         ) : (
-                          <div className="flex items-center gap-2 py-1 text-zinc-400 text-xs">
-                            <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
-                            <span>Thinking & searching context...</span>
+                          <div className="flex items-center gap-2 py-1 text-slate-500 dark:text-zinc-400 text-xs">
+                            <span className="w-2 h-2 rounded-full bg-[#5B50E6] animate-ping"></span>
+                            <span>Thinking & retrieving intelligence...</span>
                           </div>
                         )}
                         {msg.isStreaming && (
-                          <span className="inline-block w-2 h-3.5 bg-sky-400 ml-1 animate-pulse align-middle" />
+                          <span className="inline-block w-2 h-3.5 bg-[#5B50E6] ml-1 animate-pulse align-middle" />
                         )}
                       </div>
                     )}
@@ -304,16 +301,16 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
                   {/* Action buttons on assistant message */}
                   {!isUser && !msg.isStreaming && msg.content && (
-                    <div className="flex items-center gap-1 text-zinc-500 pt-0.5">
+                    <div className="flex items-center gap-1 text-slate-400 dark:text-zinc-500 pt-0.5">
                       <button
                         onClick={() => handleCopyMessage(msg.id, msg.content)}
-                        className="p-1 rounded hover:bg-zinc-800 hover:text-zinc-300 text-xs flex items-center gap-1 transition-colors"
+                        className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-700 dark:hover:text-zinc-300 text-xs flex items-center gap-1 transition-colors"
                         title="Copy answer"
                       >
                         {copiedId === msg.id ? (
                           <>
-                            <Check className="w-3.5 h-3.5 text-emerald-400" />
-                            <span className="text-[10px] text-emerald-400">Copied</span>
+                            <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-[10px] text-emerald-600 dark:text-emerald-400">Copied</span>
                           </>
                         ) : (
                           <>
@@ -325,7 +322,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
                       <button
                         onClick={() => onRegenerate(index)}
-                        className="p-1 rounded hover:bg-zinc-800 hover:text-zinc-300 text-xs flex items-center gap-1 transition-colors"
+                        className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-zinc-800 hover:text-slate-700 dark:hover:text-zinc-300 text-xs flex items-center gap-1 transition-colors"
                         title="Regenerate with current model"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
@@ -336,7 +333,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                 </div>
 
                 {isUser && (
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-zinc-700 flex items-center justify-center text-zinc-300 shrink-0 mt-0.5 shadow-sm">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-slate-200 dark:bg-zinc-700 flex items-center justify-center text-slate-700 dark:text-zinc-200 shrink-0 mt-0.5 shadow-xs">
                     <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </div>
                 )}
@@ -347,18 +344,18 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
           {/* Active Tool Events Timeline during live generation */}
           {activeToolEvents.length > 0 && isStreaming && (
             <div className="flex gap-2.5 sm:gap-3.5 justify-start">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-md shadow-sky-500/10">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center text-white shrink-0 mt-0.5 shadow-md shadow-indigo-500/15">
                 <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
               <div className="space-y-1.5 max-w-[92%] sm:max-w-[85%]">
                 {activeToolEvents.map((evt, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#1e1e22] border border-zinc-700/60 text-xs text-zinc-300 shadow-sm animate-pulse"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-[#1e1e22] border border-slate-200 dark:border-zinc-700/60 text-xs text-slate-700 dark:text-zinc-300 shadow-xs animate-pulse"
                   >
-                    {evt.type === 'rag' && <FileText className="w-3.5 h-3.5 text-sky-400 shrink-0" />}
-                    {evt.type === 'tavily' && <Globe className="w-3.5 h-3.5 text-emerald-400 shrink-0" />}
-                    {evt.type === 'gmail' && <Mail className="w-3.5 h-3.5 text-red-400 shrink-0" />}
+                    {evt.type === 'rag' && <FileText className="w-3.5 h-3.5 text-indigo-500 shrink-0" />}
+                    {evt.type === 'tavily' && <Globe className="w-3.5 h-3.5 text-emerald-500 shrink-0" />}
+                    {evt.type === 'gmail' && <Mail className="w-3.5 h-3.5 text-red-500 shrink-0" />}
                     <span className="truncate">{evt.title}</span>
                   </div>
                 ))}

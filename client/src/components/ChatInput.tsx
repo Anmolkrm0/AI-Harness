@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   ArrowUp,
-  Paperclip,
+  Plus,
   Globe,
   Mail,
   X,
   FileText,
   Loader2,
   Square,
+  AudioLines,
+  SendHorizontal,
 } from 'lucide-react';
 import { DocumentRecord } from '../types';
 import { api } from '../services/api';
@@ -26,6 +28,15 @@ interface ChatInputProps {
   conversationId?: string;
   onDocumentUploaded: (doc: DocumentRecord) => void;
 }
+
+const QUICK_SUGGESTIONS = [
+  'Draft an email',
+  'Write a script',
+  'Create an image',
+  'Create a poem',
+  'Design a logo',
+  'Write an essay',
+];
 
 export const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
@@ -97,9 +108,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     setAttachments((prev) => prev.filter((a) => a.id !== id));
   };
 
+  const handleSuggestionClick = (suggestion: string) => {
+    setMessage(`${suggestion} `);
+    textareaRef.current?.focus();
+  };
+
   return (
     <div
-      className={`relative w-full max-w-4xl mx-auto px-2 sm:px-4 pb-3 sm:pb-5 transition-all ${
+      className={`relative w-full max-w-4xl mx-auto px-3 sm:px-6 pb-3 sm:pb-5 transition-all ${
         isDragging ? 'scale-[1.01]' : ''
       }`}
       onDragOver={(e) => {
@@ -113,20 +129,21 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         handleFileUpload(e.dataTransfer.files);
       }}
     >
-      <div className="bg-[#1e1e22] rounded-2xl border border-zinc-700/80 shadow-2xl p-2.5 sm:p-3 focus-within:border-sky-500/80 transition-all">
+      {/* AskFlow Floating Input Card */}
+      <div className="bg-white/95 dark:bg-[#18181d]/95 backdrop-blur-md rounded-2xl border border-slate-200/90 dark:border-zinc-800 shadow-lg shadow-slate-200/40 dark:shadow-black/40 p-3 sm:p-4 focus-within:border-indigo-400 dark:focus-within:border-indigo-500 transition-all">
         {/* Attachment Chips Preview */}
         {attachments.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 sm:gap-2 pb-2 mb-2 border-b border-zinc-800">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 pb-2 mb-2 border-b border-slate-100 dark:border-zinc-800">
             {attachments.map((att) => (
               <div
                 key={att.id}
-                className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-zinc-800 text-[11px] sm:text-xs text-zinc-200 border border-zinc-700 max-w-[200px]"
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-zinc-800 text-[11px] sm:text-xs text-slate-700 dark:text-zinc-200 border border-slate-200 dark:border-zinc-700 max-w-[200px]"
               >
-                <FileText className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                <FileText className="w-3.5 h-3.5 text-[#5B50E6] dark:text-indigo-400 shrink-0" />
                 <span className="truncate font-medium">{att.filename}</span>
                 <button
                   onClick={() => removeAttachment(att.id)}
-                  className="p-0.5 hover:text-rose-400 text-zinc-400 transition-colors shrink-0"
+                  className="p-0.5 hover:text-rose-600 dark:hover:text-rose-400 text-slate-400 dark:text-zinc-400 transition-colors shrink-0"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -141,15 +158,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask anything, switch models mid-chat, query PDFs, search the web or emails..."
+          placeholder="Ask me anything ✨"
           rows={1}
-          className="w-full bg-transparent text-xs sm:text-sm text-zinc-100 placeholder-zinc-500 resize-none focus:outline-none max-h-36 sm:max-h-48 leading-relaxed px-1"
+          className="w-full bg-transparent text-xs sm:text-sm text-slate-900 dark:text-zinc-100 placeholder-slate-400 dark:placeholder-zinc-500 resize-none focus:outline-none max-h-36 sm:max-h-48 leading-relaxed px-1 font-medium"
         />
 
-        {/* Toolbar & Actions */}
-        <div className="flex items-center justify-between pt-2 mt-0.5 sm:mt-1">
-          {/* Left quick tools */}
-          <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap">
+        {/* Action Toolbar */}
+        <div className="flex items-center justify-between pt-2.5 mt-0.5">
+          {/* Left tools: Plus attach, audio/waveform, Web, Gmail */}
+          <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
             <input
               type="file"
               ref={fileInputRef}
@@ -159,28 +176,36 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               className="hidden"
             />
 
-            {/* Paperclip upload button */}
+            {/* + Button matching reference */}
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium text-zinc-400 hover:text-white hover:bg-zinc-800 border border-zinc-700/50 transition-colors"
-              title="Attach documents (PDF, Word, PPTX, CSV, TXT, Images)"
+              className="p-1.5 sm:p-2 rounded-xl text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors flex items-center justify-center"
+              title="Add documents (PDF, Word, PPTX, CSV, TXT, Images)"
             >
               {isUploading ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-400" />
+                <Loader2 className="w-4 h-4 animate-spin text-[#5B50E6]" />
               ) : (
-                <Paperclip className="w-3.5 h-3.5" />
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
               )}
-              <span className="hidden sm:inline">Attach</span>
+            </button>
+
+            {/* Audio / Waveform icon button matching reference */}
+            <button
+              type="button"
+              className="p-1.5 sm:p-2 rounded-xl text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"
+              title="Voice & intelligent tool controls"
+            >
+              <AudioLines className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
 
             {/* Tavily Web Search Toggle */}
             <button
               onClick={() => setEnableWeb(!enableWeb)}
-              className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all ${
                 enableWeb
-                  ? 'bg-sky-500/10 text-sky-400 border-sky-500/40'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800 border-zinc-700/50'
+                  ? 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/40'
+                  : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 border-slate-200 dark:border-zinc-700/60'
               }`}
               title="Tavily live web search"
             >
@@ -191,10 +216,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             {/* Gmail IMAP Toggle */}
             <button
               onClick={() => setEnableGmail(!enableGmail)}
-              className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all ${
                 enableGmail
-                  ? 'bg-red-500/10 text-red-400 border-red-500/40'
-                  : 'text-zinc-400 hover:text-white hover:bg-zinc-800 border-zinc-700/50'
+                  ? 'bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-500/40'
+                  : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 border-slate-200 dark:border-zinc-700/60'
               }`}
               title="Search and summarize Gmail emails"
             >
@@ -203,12 +228,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             </button>
           </div>
 
-          {/* Right Send / Stop button */}
+          {/* Right Circular Send / Stop Button matching reference */}
           <div>
             {isStreaming ? (
               <button
                 onClick={onStopStreaming}
-                className="w-8 h-8 rounded-xl bg-zinc-700 hover:bg-rose-600 text-white flex items-center justify-center transition-all shadow-md"
+                className="w-9 h-9 rounded-full bg-slate-200 dark:bg-zinc-700 hover:bg-rose-600 text-slate-700 dark:text-white flex items-center justify-center transition-all shadow-sm"
                 title="Stop generation"
               >
                 <Square className="w-3.5 h-3.5 fill-current" />
@@ -217,18 +242,28 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               <button
                 onClick={handleSend}
                 disabled={!message.trim() && attachments.length === 0}
-                className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white flex items-center justify-center disabled:opacity-30 disabled:cursor-not-allowed shadow-md shadow-sky-500/20 transition-all shrink-0"
-                title="Send message (Enter)"
+                className="w-9 h-9 rounded-full bg-[#5B50E6] hover:bg-[#4C40D4] text-white flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed shadow-md shadow-indigo-500/25 transition-all shrink-0 active:scale-95"
+                title="Send message"
               >
-                <ArrowUp className="w-4 h-4" />
+                <SendHorizontal className="w-4 h-4 ml-0.5" />
               </button>
             )}
           </div>
         </div>
       </div>
-      <p className="text-[10px] sm:text-[11px] text-center text-zinc-500 pt-1.5 line-clamp-1">
-        AI Harness combines multi-model intelligence, RAG document knowledge, Tavily web search, and Gmail.
-      </p>
+
+      {/* Floating Suggestion Pills beneath input matching reference image */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pt-2.5 px-0.5">
+        {QUICK_SUGGESTIONS.map((tag, idx) => (
+          <button
+            key={idx}
+            onClick={() => handleSuggestionClick(tag)}
+            className="px-3.5 py-1.5 rounded-full text-xs font-medium border border-slate-200/90 dark:border-zinc-800 bg-white/90 dark:bg-[#1a1a22]/90 hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-all shadow-2xs whitespace-nowrap cursor-pointer hover:-translate-y-0.5"
+          >
+            {tag}
+          </button>
+        ))}
+      </div>
     </div>
   );
 };

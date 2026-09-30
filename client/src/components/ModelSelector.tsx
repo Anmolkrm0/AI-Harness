@@ -33,13 +33,13 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   const getProviderColor = (provider: ProviderType) => {
     switch (provider) {
       case 'openai':
-        return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+        return 'text-emerald-700 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-500/10 dark:border-emerald-500/30';
       case 'anthropic':
-        return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+        return 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-500/10 dark:border-amber-500/30';
       case 'gemini':
-        return 'text-sky-400 bg-sky-500/10 border-sky-500/30';
+        return 'text-indigo-700 bg-indigo-50 border-indigo-200 dark:text-sky-400 dark:bg-sky-500/10 dark:border-sky-500/30';
       case 'xai':
-        return 'text-zinc-200 bg-zinc-500/10 border-zinc-500/30';
+        return 'text-slate-700 bg-slate-100 border-slate-200 dark:text-zinc-200 dark:bg-zinc-500/10 dark:border-zinc-500/30';
     }
   };
 
@@ -60,39 +60,39 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700/60 text-white text-xs sm:text-sm font-medium transition-all shadow-sm max-w-[200px] sm:max-w-none"
+        className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 rounded-xl bg-white dark:bg-zinc-800/90 hover:bg-slate-50 dark:hover:bg-zinc-700/80 border border-slate-200/90 dark:border-zinc-700/60 text-slate-800 dark:text-white text-xs sm:text-sm font-semibold transition-all shadow-xs max-w-[200px] sm:max-w-none"
       >
         <div className="flex items-center gap-1.5 overflow-hidden">
           <span
-            className={`px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider border shrink-0 ${
+            className={`px-1.5 py-0.5 rounded text-[9px] sm:text-[10px] font-bold uppercase tracking-wider border shrink-0 ${
               selectedModel ? getProviderColor(selectedModel.provider) : ''
             }`}
           >
             {selectedModel ? getProviderLabel(selectedModel.provider) : 'AI'}
           </span>
-          <span className="font-semibold text-zinc-100 truncate text-xs sm:text-sm">
+          <span className="font-semibold text-slate-800 dark:text-zinc-100 truncate text-xs sm:text-sm">
             {selectedModel?.name || 'Select Model'}
           </span>
         </div>
         <ChevronDown
-          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-zinc-400 transition-transform duration-200 shrink-0 ${
+          className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 dark:text-zinc-400 transition-transform duration-200 shrink-0 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 mt-2 w-[calc(100vw-32px)] sm:w-80 max-w-sm max-h-96 overflow-y-auto rounded-2xl bg-[#1e1e22] border border-zinc-700/80 shadow-2xl p-2 z-50 divide-y divide-zinc-800 backdrop-blur-md">
-          <div className="px-3 py-2 text-xs font-semibold text-zinc-400 flex items-center justify-between">
-            <span>SWITCH MODEL FOR THIS CHAT</span>
+        <div className="absolute left-0 mt-2 w-[calc(100vw-32px)] sm:w-80 max-w-sm max-h-96 overflow-y-auto rounded-2xl bg-white dark:bg-[#1a1a20] border border-slate-200 dark:border-zinc-750 shadow-2xl p-2 z-50 divide-y divide-slate-100 dark:divide-zinc-800 backdrop-blur-md">
+          <div className="px-3 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-zinc-400 flex items-center justify-between">
+            <span>SWITCH MODEL</span>
             <button
               onClick={() => {
                 setIsOpen(false);
                 onOpenSettings();
               }}
-              className="text-sky-400 hover:text-sky-300 text-[11px] underline"
+              className="text-[#5B50E6] dark:text-indigo-400 hover:underline text-[11px] font-medium"
             >
-              API Keys
+              Configure Keys
             </button>
           </div>
 
@@ -107,45 +107,51 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                     setIsOpen(false);
                   }}
                   className={`w-full flex items-start justify-between p-2.5 rounded-xl text-left transition-all ${
-                    isSelected ? 'bg-sky-500/10 border border-sky-500/30' : 'hover:bg-zinc-800/70 border border-transparent'
+                    isSelected
+                      ? 'bg-indigo-50/90 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30'
+                      : 'hover:bg-slate-100/80 dark:hover:bg-zinc-800/70 border border-transparent'
                   }`}
                 >
                   <div className="space-y-1 pr-2 overflow-hidden">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`px-1.5 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider border shrink-0 ${getProviderColor(
+                        className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border shrink-0 ${getProviderColor(
                           model.provider
                         )}`}
                       >
                         {getProviderLabel(model.provider)}
                       </span>
-                      <span className="text-sm font-semibold text-white truncate">{model.name}</span>
+                      <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white truncate">
+                        {model.name}
+                      </span>
                       {model.supportsVision && (
-                        <span title="Supports Vision / Images" className="text-zinc-400 shrink-0">
+                        <span title="Supports Vision / Images" className="text-slate-400 dark:text-zinc-400 shrink-0">
                           <Eye className="w-3 h-3" />
                         </span>
                       )}
                     </div>
-                    <p className="text-[11px] text-zinc-400 line-clamp-1">{model.description}</p>
+                    <p className="text-[11px] text-slate-500 dark:text-zinc-400 line-clamp-1">
+                      {model.description}
+                    </p>
                     <div className="flex items-center gap-2 pt-0.5">
                       {model.isConfigured ? (
-                        <span className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Ready
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Ready
                         </span>
                       ) : (
-                        <span className="text-[10px] text-amber-400/90 font-medium flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Needs Key
+                        <span className="text-[10px] text-amber-600 dark:text-amber-400/90 font-medium flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Needs Key
                         </span>
                       )}
                       {model.contextWindow && (
-                        <span className="text-[10px] text-zinc-500">
+                        <span className="text-[10px] text-slate-400 dark:text-zinc-500">
                           {(model.contextWindow / 1000).toFixed(0)}k context
                         </span>
                       )}
                     </div>
                   </div>
 
-                  {isSelected && <Check className="w-4 h-4 text-sky-400 shrink-0 mt-1" />}
+                  {isSelected && <Check className="w-4 h-4 text-[#5B50E6] dark:text-indigo-400 shrink-0 mt-1" />}
                 </button>
               );
             })}
