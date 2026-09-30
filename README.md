@@ -137,27 +137,6 @@ Upon first login, click **Settings** or visit the **Connect Services** screen to
 
 ---
 
-## ☁️ Deployment Guide (Render.com)
-
-AI Harness is configured for instant deployment on [Render](https://render.com) as a single Web Service:
-
-1. **Create Web Service** on Render and link your GitHub repository: `https://github.com/Anmolkrm0/AI-Harness`.
-2. Configure settings:
-   * **Environment**: `Node`
-   * **Node Version**: `22.14.0` (set in environment variable `NODE_VERSION=22.14.0`)
-   * **Build Command**:
-     ```bash
-     npm run build
-     ```
-   * **Start Command**:
-     ```bash
-     npm start
-     ```
-3. **Persistent Disk (Optional but Recommended)**:
-   * Mount a disk at `/server/data` to persist user accounts, chat histories, and SQLite databases across service restarts.
-
----
-
 ## 📂 Project Structure
 
 ```
