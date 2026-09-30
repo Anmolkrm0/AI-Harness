@@ -176,7 +176,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         >
           <AskFlowLogo />
           <span className="font-bold text-base tracking-tight text-slate-900 dark:text-white group-hover:opacity-90 transition-opacity">
-            AskFlow
+            AI Harness
           </span>
         </div>
         <div className="flex items-center gap-1">
