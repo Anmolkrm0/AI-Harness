@@ -6,6 +6,7 @@ import {
   ServiceTestResult,
   SettingsResponse,
   ToolEvent,
+  JudgeEvaluation,
 } from '../types';
 
 export const api = {
@@ -117,13 +118,22 @@ export const api = {
       model: string;
       enableWeb?: boolean;
       enableGmail?: boolean;
+      enableJudge?: boolean;
       attachments?: any[];
     },
     callbacks: {
       onInit?: (data: { userMessageId: string; assistantMessageId: string; model: string; provider: string }) => void;
       onToolEvent?: (event: ToolEvent) => void;
       onToken?: (token: string) => void;
-      onDone?: (data: { messageId: string; content: string; model_used: string; provider_used: string; tool_calls: any[]; suggested_questions?: string[] }) => void;
+      onDone?: (data: {
+        messageId: string;
+        content: string;
+        model_used: string;
+        provider_used: string;
+        tool_calls: any[];
+        suggested_questions?: string[];
+        judge_evaluation?: JudgeEvaluation;
+      }) => void;
       onError?: (error: string) => void;
     },
     signal?: AbortSignal
@@ -177,5 +187,40 @@ export const api = {
         }
       }
     }
+  },
+
+  // LLM as a Judge
+  async evaluateMessage(
+    messageId: string,
+    conversationId: string,
+    judgeModel?: string
+  ): Promise<{ success: boolean; evaluation: JudgeEvaluation }> {
+    const res = await fetch('/api/chat/evaluate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId, conversationId, judgeModel }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Evaluation failed' }));
+      throw new Error(err.error || 'Evaluation failed');
+    }
+    return res.json();
+  },
+
+  async improveMessage(
+    messageId: string,
+    conversationId: string,
+    targetModel?: string
+  ): Promise<{ success: boolean; improvedContent: string; judge_evaluation: JudgeEvaluation }> {
+    const res = await fetch('/api/chat/improve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messageId, conversationId, targetModel }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Improvement failed' }));
+      throw new Error(err.error || 'Improvement failed');
+    }
+    return res.json();
   },
 };

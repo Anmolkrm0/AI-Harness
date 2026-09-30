@@ -53,6 +53,30 @@ export interface ToolCall {
   emails?: any[];
 }
 
+export interface MetricEvaluation {
+  score: number; // 1 to 10
+  status: 'passed' | 'warning' | 'failed';
+  comment: string;
+}
+
+export interface JudgeEvaluation {
+  overallScore: number;
+  verdict: 'Excellent' | 'Good' | 'Needs Improvement' | 'Critical Flaws';
+  judgeModel: string;
+  summary: string;
+  metrics: {
+    accuracy: MetricEvaluation;
+    relevance: MetricEvaluation;
+    completeness: MetricEvaluation;
+    hallucination: MetricEvaluation;
+    tone: MetricEvaluation;
+    citationQuality: MetricEvaluation;
+  };
+  critique: string;
+  suggestedImprovements: string[];
+  evaluatedAt: number;
+}
+
 export interface Message {
   id: string;
   conversation_id: string;
@@ -63,6 +87,7 @@ export interface Message {
   tool_calls?: ToolCall[] | null;
   attachments?: Attachment[] | null;
   suggested_questions?: string[] | null;
+  judge_evaluation?: JudgeEvaluation | null;
   created_at: number;
   isStreaming?: boolean;
 }

@@ -5,11 +5,12 @@ import { AgentCoordinator } from '../services/tools/agent.js';
 import { ModelRegistry } from '../services/providers/registry.js';
 import { ChatMessage } from '../services/providers/types.js';
 import { QuestionSuggester } from '../services/tools/questionSuggester.js';
+import { LLMJudge, JudgeEvaluation } from '../services/tools/judge.js';
 
 export const chatRouter = Router();
 
 chatRouter.post('/stream', async (req, res) => {
-  const { conversationId, message, model: requestedModel, enableWeb, enableGmail, attachments } = req.body;
+  const { conversationId, message, model: requestedModel, enableWeb, enableGmail, enableJudge, attachments } = req.body;
 
   if (!conversationId || !message) {
     return res.status(400).json({ error: 'conversationId and message are required' });
@@ -121,6 +122,20 @@ chatRouter.post('/stream', async (req, res) => {
       }
     }
 
+    // LLM as a Judge evaluation (if enabled)
+    let judgeEvaluation: JudgeEvaluation | null = null;
+    if (enableJudge && fullAssistantText.trim().length > 10) {
+      try {
+        judgeEvaluation = await LLMJudge.evaluate(
+          message,
+          fullAssistantText,
+          { toolsUsed: finalToolCalls, documents: attachments }
+        );
+      } catch (err: any) {
+        console.warn('Judge evaluation error:', err.message);
+      }
+    }
+
     // Save assistant message to database
     dbService.addMessage({
       id: assistantMsgId,
@@ -131,6 +146,7 @@ chatRouter.post('/stream', async (req, res) => {
       provider_used: modelInfo.provider,
       tool_calls: finalToolCalls.length > 0 ? finalToolCalls : null,
       suggested_questions: suggestedQuestions.length > 0 ? suggestedQuestions : null,
+      judge_evaluation: judgeEvaluation || null,
     });
 
     sendSSE({
@@ -141,6 +157,7 @@ chatRouter.post('/stream', async (req, res) => {
       provider_used: modelInfo.provider,
       tool_calls: finalToolCalls,
       suggested_questions: suggestedQuestions,
+      judge_evaluation: judgeEvaluation,
     });
 
     res.end();
@@ -168,5 +185,100 @@ chatRouter.post('/stream', async (req, res) => {
     });
 
     res.end();
+  }
+});
+
+// POST /api/chat/evaluate - On-demand evaluation with LLM as a Judge
+chatRouter.post('/evaluate', async (req, res) => {
+  try {
+    const { messageId, conversationId, judgeModel } = req.body;
+    if (!messageId || !conversationId) {
+      return res.status(400).json({ error: 'messageId and conversationId are required' });
+    }
+
+    const msg = dbService.getMessage(messageId);
+    if (!msg || !msg.content) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    // Retrieve user prompt for evaluation context
+    const history = dbService.listMessages(conversationId);
+    const msgIndex = history.findIndex((m) => m.id === messageId);
+    let userPrompt = 'General query';
+    for (let i = msgIndex - 1; i >= 0; i--) {
+      if (history[i].role === 'user') {
+        userPrompt = history[i].content;
+        break;
+      }
+    }
+
+    const toolsUsed = msg.tool_calls ? JSON.parse(msg.tool_calls) : [];
+    const evaluation = await LLMJudge.evaluate(
+      userPrompt,
+      msg.content,
+      { toolsUsed },
+      judgeModel
+    );
+
+    dbService.updateMessage(messageId, { judge_evaluation: evaluation });
+
+    res.json({ success: true, evaluation });
+  } catch (err: any) {
+    console.error('Evaluate endpoint error:', err);
+    res.status(500).json({ error: err.message || 'Evaluation failed' });
+  }
+});
+
+// POST /api/chat/improve - Regenerate & improve response using Judge feedback
+chatRouter.post('/improve', async (req, res) => {
+  try {
+    const { messageId, conversationId, targetModel } = req.body;
+    if (!messageId || !conversationId) {
+      return res.status(400).json({ error: 'messageId and conversationId are required' });
+    }
+
+    const msg = dbService.getMessage(messageId);
+    if (!msg || !msg.content) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    const history = dbService.listMessages(conversationId);
+    const msgIndex = history.findIndex((m) => m.id === messageId);
+    let userPrompt = 'Original query';
+    for (let i = msgIndex - 1; i >= 0; i--) {
+      if (history[i].role === 'user') {
+        userPrompt = history[i].content;
+        break;
+      }
+    }
+
+    let evaluation = msg.judge_evaluation ? JSON.parse(msg.judge_evaluation) : null;
+    if (!evaluation) {
+      evaluation = await LLMJudge.evaluate(userPrompt, msg.content);
+    }
+
+    const improvedContent = await LLMJudge.improveResponse(
+      userPrompt,
+      msg.content,
+      evaluation,
+      targetModel || msg.model_used || undefined
+    );
+
+    // Re-evaluate to get an updated scorecard for the improved response
+    const newEvaluation = await LLMJudge.evaluate(userPrompt, improvedContent);
+
+    dbService.updateMessage(messageId, {
+      content: improvedContent,
+      judge_evaluation: newEvaluation,
+    });
+
+    res.json({
+      success: true,
+      improvedContent,
+      judge_evaluation: newEvaluation,
+    });
+  } catch (err: any) {
+    console.error('Improve endpoint error:', err);
+    res.status(500).json({ error: err.message || 'Failed to improve response' });
   }
 });

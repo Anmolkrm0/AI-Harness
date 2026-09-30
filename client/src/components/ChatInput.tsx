@@ -10,6 +10,7 @@ import {
   Square,
   AudioLines,
   SendHorizontal,
+  Scale,
 } from 'lucide-react';
 import { DocumentRecord } from '../types';
 import { api } from '../services/api';
@@ -20,6 +21,7 @@ interface ChatInputProps {
     options: {
       enableWeb: boolean;
       enableGmail: boolean;
+      enableJudge: boolean;
       attachments: DocumentRecord[];
     }
   ) => void;
@@ -48,6 +50,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const [message, setMessage] = useState('');
   const [enableWeb, setEnableWeb] = useState(false);
   const [enableGmail, setEnableGmail] = useState(false);
+  const [enableJudge, setEnableJudge] = useState(false);
   const [attachments, setAttachments] = useState<DocumentRecord[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -68,6 +71,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     onSendMessage(message.trim(), {
       enableWeb,
       enableGmail,
+      enableJudge,
       attachments,
     });
     setMessage('');
@@ -225,6 +229,21 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             >
               <Mail className="w-3.5 h-3.5" />
               <span>Gmail</span>
+            </button>
+
+            {/* LLM as a Judge Toggle */}
+            <button
+              type="button"
+              onClick={() => setEnableJudge(!enableJudge)}
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-all ${
+                enableJudge
+                  ? 'bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-500/40 shadow-2xs'
+                  : 'text-slate-500 dark:text-zinc-400 hover:text-slate-800 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 border-slate-200 dark:border-zinc-700/60'
+              }`}
+              title="Evaluate response using LLM as a Judge across 6 metrics (Accuracy, Relevance, Completeness, Hallucination, Tone, Citations)"
+            >
+              <Scale className="w-3.5 h-3.5" />
+              <span>Judge</span>
             </button>
           </div>
 

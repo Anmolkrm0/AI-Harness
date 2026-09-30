@@ -37,6 +37,7 @@ conversationsRouter.get('/:id', (req, res) => {
     tool_calls: m.tool_calls ? JSON.parse(m.tool_calls) : null,
     attachments: m.attachments ? JSON.parse(m.attachments) : null,
     suggested_questions: m.suggested_questions ? JSON.parse(m.suggested_questions) : null,
+    judge_evaluation: m.judge_evaluation ? JSON.parse(m.judge_evaluation) : null,
     created_at: m.created_at,
   }));
 

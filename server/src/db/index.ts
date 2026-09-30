@@ -48,6 +48,7 @@ db.exec(`
     tool_calls TEXT,
     attachments TEXT,
     suggested_questions TEXT,
+    judge_evaluation TEXT,
     created_at INTEGER NOT NULL,
     FOREIGN KEY(conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
   );
@@ -85,6 +86,12 @@ try {
   // Column already exists
 }
 
+try {
+  db.exec('ALTER TABLE messages ADD COLUMN judge_evaluation TEXT;');
+} catch (_) {
+  // Column already exists
+}
+
 export interface SettingRecord {
   key: string;
   value: string;
@@ -109,6 +116,7 @@ export interface MessageRecord {
   tool_calls?: string | null;
   attachments?: string | null;
   suggested_questions?: string | null;
+  judge_evaluation?: string | null;
   created_at: number;
 }
 
@@ -211,15 +219,17 @@ export const dbService = {
     tool_calls?: any;
     attachments?: any;
     suggested_questions?: any;
+    judge_evaluation?: any;
   }): MessageRecord => {
     const now = Date.now();
     const toolCallsStr = msg.tool_calls ? JSON.stringify(msg.tool_calls) : null;
     const attachmentsStr = msg.attachments ? JSON.stringify(msg.attachments) : null;
     const suggestedStr = msg.suggested_questions ? JSON.stringify(msg.suggested_questions) : null;
+    const judgeStr = msg.judge_evaluation ? JSON.stringify(msg.judge_evaluation) : null;
 
     db.prepare(`
-      INSERT INTO messages (id, conversation_id, role, content, model_used, provider_used, tool_calls, attachments, suggested_questions, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO messages (id, conversation_id, role, content, model_used, provider_used, tool_calls, attachments, suggested_questions, judge_evaluation, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       msg.id,
       msg.conversation_id,
@@ -230,6 +240,7 @@ export const dbService = {
       toolCallsStr,
       attachmentsStr,
       suggestedStr,
+      judgeStr,
       now
     );
 
@@ -246,8 +257,26 @@ export const dbService = {
       tool_calls: toolCallsStr,
       attachments: attachmentsStr,
       suggested_questions: suggestedStr,
+      judge_evaluation: judgeStr,
       created_at: now,
     };
+  },
+
+  getMessage: (id: string): MessageRecord | null => {
+    const row = db.prepare('SELECT * FROM messages WHERE id = ?').get(id) as MessageRecord | undefined;
+    return row || null;
+  },
+
+  updateMessage: (id: string, updates: { content?: string; judge_evaluation?: any; suggested_questions?: any }) => {
+    if (updates.judge_evaluation !== undefined && updates.content !== undefined) {
+      const judgeStr = updates.judge_evaluation ? JSON.stringify(updates.judge_evaluation) : null;
+      db.prepare('UPDATE messages SET content = ?, judge_evaluation = ? WHERE id = ?').run(updates.content, judgeStr, id);
+    } else if (updates.judge_evaluation !== undefined) {
+      const judgeStr = updates.judge_evaluation ? JSON.stringify(updates.judge_evaluation) : null;
+      db.prepare('UPDATE messages SET judge_evaluation = ? WHERE id = ?').run(judgeStr, id);
+    } else if (updates.content !== undefined) {
+      db.prepare('UPDATE messages SET content = ? WHERE id = ?').run(updates.content, id);
+    }
   },
 
   // Documents

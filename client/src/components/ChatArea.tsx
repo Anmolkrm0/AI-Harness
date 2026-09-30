@@ -12,9 +12,11 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
+  Scale,
 } from 'lucide-react';
 import { Message, ToolEvent, ModelInfo } from '../types';
 import { MarkdownRenderer } from './MarkdownRenderer';
+import { JudgeScorecard } from './JudgeScorecard';
 
 interface ChatAreaProps {
   messages: Message[];
@@ -23,6 +25,10 @@ interface ChatAreaProps {
   activeToolEvents: ToolEvent[];
   onPromptSuggestion: (text: string) => void;
   onRegenerate: (messageIndex: number) => void;
+  onEvaluateJudge?: (messageId: string) => void;
+  onImproveMessage?: (messageId: string) => void;
+  evaluatingMessageId?: string | null;
+  improvingMessageId?: string | null;
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({
@@ -32,6 +38,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
   activeToolEvents,
   onPromptSuggestion,
   onRegenerate,
+  onEvaluateJudge,
+  onImproveMessage,
+  evaluatingMessageId,
+  improvingMessageId,
 }) => {
   const scrollEndRef = useRef<HTMLDivElement>(null);
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
@@ -299,6 +309,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                     )}
                   </div>
 
+                  {/* LLM as a Judge Scorecard */}
+                  {!isUser && !msg.isStreaming && msg.judge_evaluation && (
+                    <JudgeScorecard
+                      evaluation={msg.judge_evaluation}
+                      onImprove={onImproveMessage ? () => onImproveMessage(msg.id) : undefined}
+                      isImproving={improvingMessageId === msg.id}
+                    />
+                  )}
+
                   {/* Suggested follow-up questions */}
                   {!isUser && !msg.isStreaming && msg.suggested_questions && msg.suggested_questions.length > 0 && (
                     <div className="pt-1 flex flex-col gap-1.5 w-full">
@@ -350,6 +369,21 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                         <RefreshCw className="w-3.5 h-3.5" />
                         <span className="text-[10px]">Regenerate</span>
                       </button>
+
+                      {/* On-demand LLM as a Judge evaluation */}
+                      {!msg.judge_evaluation && onEvaluateJudge && (
+                        <button
+                          onClick={() => onEvaluateJudge(msg.id)}
+                          disabled={evaluatingMessageId === msg.id}
+                          className="p-1 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-950/40 hover:text-purple-600 dark:hover:text-purple-400 text-xs flex items-center gap-1 transition-colors disabled:opacity-50"
+                          title="Evaluate response with LLM as a Judge across 6 metrics"
+                        >
+                          <Scale className={`w-3.5 h-3.5 ${evaluatingMessageId === msg.id ? 'animate-spin' : ''}`} />
+                          <span className="text-[10px]">
+                            {evaluatingMessageId === msg.id ? 'Evaluating...' : 'Judge'}
+                          </span>
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

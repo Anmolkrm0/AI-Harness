@@ -52,6 +52,8 @@ export function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [activeToolEvents, setActiveToolEvents] = useState<ToolEvent[]>([]);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const [evaluatingMessageId, setEvaluatingMessageId] = useState<string | null>(null);
+  const [improvingMessageId, setImprovingMessageId] = useState<string | null>(null);
 
   // Sync theme changes with DOM and localStorage
   useEffect(() => {
@@ -212,6 +214,7 @@ export function App() {
     options: {
       enableWeb: boolean;
       enableGmail: boolean;
+      enableJudge?: boolean;
       attachments: DocumentRecord[];
     }
   ) => {
@@ -274,6 +277,7 @@ export function App() {
           model: selectedModelId,
           enableWeb: options.enableWeb,
           enableGmail: options.enableGmail,
+          enableJudge: options.enableJudge,
           attachments: options.attachments,
         },
         {
@@ -315,6 +319,7 @@ export function App() {
                       provider_used: data.provider_used,
                       tool_calls: data.tool_calls,
                       suggested_questions: data.suggested_questions,
+                      judge_evaluation: data.judge_evaluation,
                       isStreaming: false,
                     }
                   : m
@@ -358,6 +363,52 @@ export function App() {
       }
       setIsStreaming(false);
       setActiveToolEvents([]);
+    }
+  };
+
+  const handleEvaluateJudge = async (messageId: string) => {
+    if (!activeConversationId || evaluatingMessageId) return;
+    setEvaluatingMessageId(messageId);
+    try {
+      const res = await api.evaluateMessage(messageId, activeConversationId);
+      if (res.evaluation) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === messageId ? { ...m, judge_evaluation: res.evaluation } : m
+          )
+        );
+      }
+    } catch (err: any) {
+      console.error('Judge evaluation failed:', err);
+      alert(`Judge evaluation failed: ${err.message}`);
+    } finally {
+      setEvaluatingMessageId(null);
+    }
+  };
+
+  const handleImproveMessage = async (messageId: string) => {
+    if (!activeConversationId || improvingMessageId) return;
+    setImprovingMessageId(messageId);
+    try {
+      const res = await api.improveMessage(messageId, activeConversationId, selectedModelId);
+      if (res.improvedContent) {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === messageId
+              ? {
+                  ...m,
+                  content: res.improvedContent,
+                  judge_evaluation: res.judge_evaluation,
+                }
+              : m
+          )
+        );
+      }
+    } catch (err: any) {
+      console.error('Improve message failed:', err);
+      alert(`Failed to improve response: ${err.message}`);
+    } finally {
+      setImprovingMessageId(null);
     }
   };
 
@@ -517,9 +568,13 @@ export function App() {
           isStreaming={isStreaming}
           activeToolEvents={activeToolEvents}
           onPromptSuggestion={(text) =>
-            handleSendMessage(text, { enableWeb: true, enableGmail: true, attachments: [] })
+            handleSendMessage(text, { enableWeb: true, enableGmail: true, enableJudge: false, attachments: [] })
           }
           onRegenerate={handleRegenerate}
+          onEvaluateJudge={handleEvaluateJudge}
+          onImproveMessage={handleImproveMessage}
+          evaluatingMessageId={evaluatingMessageId}
+          improvingMessageId={improvingMessageId}
         />
 
         {/* Input Bar */}
