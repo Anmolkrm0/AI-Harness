@@ -4,6 +4,7 @@ import { dbService } from '../db/index.js';
 import { AgentCoordinator } from '../services/tools/agent.js';
 import { ModelRegistry } from '../services/providers/registry.js';
 import { ChatMessage } from '../services/providers/types.js';
+import { QuestionSuggester } from '../services/tools/questionSuggester.js';
 
 export const chatRouter = Router();
 
@@ -110,6 +111,16 @@ chatRouter.post('/stream', async (req, res) => {
       throw new Error(`The model '${modelInfo.name}' did not return any tokens.`);
     }
 
+    // Generate 3 intelligent follow-up questions related to the generated answer
+    let suggestedQuestions: string[] = [];
+    if (fullAssistantText.trim().length > 10) {
+      try {
+        suggestedQuestions = await QuestionSuggester.suggest(message, fullAssistantText, activeModel);
+      } catch (err: any) {
+        console.warn('Suggested questions generation warning:', err.message);
+      }
+    }
+
     // Save assistant message to database
     dbService.addMessage({
       id: assistantMsgId,
@@ -119,6 +130,7 @@ chatRouter.post('/stream', async (req, res) => {
       model_used: activeModel,
       provider_used: modelInfo.provider,
       tool_calls: finalToolCalls.length > 0 ? finalToolCalls : null,
+      suggested_questions: suggestedQuestions.length > 0 ? suggestedQuestions : null,
     });
 
     sendSSE({
@@ -128,6 +140,7 @@ chatRouter.post('/stream', async (req, res) => {
       model_used: activeModel,
       provider_used: modelInfo.provider,
       tool_calls: finalToolCalls,
+      suggested_questions: suggestedQuestions,
     });
 
     res.end();

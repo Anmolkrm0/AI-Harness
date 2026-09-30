@@ -30,12 +30,12 @@ interface ChatInputProps {
 }
 
 const QUICK_SUGGESTIONS = [
-  'Draft an email',
-  'Write a script',
-  'Create an image',
-  'Create a poem',
-  'Design a logo',
-  'Write an essay',
+  'Summarize emails',
+  'Search the web',
+  'Analyze document',
+  'Debug code',
+  'Draft brief',
+  'Compare models',
 ];
 
 export const ChatInput: React.FC<ChatInputProps> = ({

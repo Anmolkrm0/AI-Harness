@@ -47,6 +47,7 @@ db.exec(`
     provider_used TEXT,
     tool_calls TEXT,
     attachments TEXT,
+    suggested_questions TEXT,
     created_at INTEGER NOT NULL,
     FOREIGN KEY(conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
   );
@@ -77,6 +78,13 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_chunks_doc ON document_chunks(document_id);
 `);
 
+// Safe migration for existing SQLite databases
+try {
+  db.exec('ALTER TABLE messages ADD COLUMN suggested_questions TEXT;');
+} catch (_) {
+  // Column already exists
+}
+
 export interface SettingRecord {
   key: string;
   value: string;
@@ -100,6 +108,7 @@ export interface MessageRecord {
   provider_used?: string | null;
   tool_calls?: string | null;
   attachments?: string | null;
+  suggested_questions?: string | null;
   created_at: number;
 }
 
@@ -201,14 +210,16 @@ export const dbService = {
     provider_used?: string;
     tool_calls?: any;
     attachments?: any;
+    suggested_questions?: any;
   }): MessageRecord => {
     const now = Date.now();
     const toolCallsStr = msg.tool_calls ? JSON.stringify(msg.tool_calls) : null;
     const attachmentsStr = msg.attachments ? JSON.stringify(msg.attachments) : null;
+    const suggestedStr = msg.suggested_questions ? JSON.stringify(msg.suggested_questions) : null;
 
     db.prepare(`
-      INSERT INTO messages (id, conversation_id, role, content, model_used, provider_used, tool_calls, attachments, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO messages (id, conversation_id, role, content, model_used, provider_used, tool_calls, attachments, suggested_questions, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       msg.id,
       msg.conversation_id,
@@ -218,6 +229,7 @@ export const dbService = {
       msg.provider_used || null,
       toolCallsStr,
       attachmentsStr,
+      suggestedStr,
       now
     );
 
@@ -233,6 +245,7 @@ export const dbService = {
       provider_used: msg.provider_used || null,
       tool_calls: toolCallsStr,
       attachments: attachmentsStr,
+      suggested_questions: suggestedStr,
       created_at: now,
     };
   },

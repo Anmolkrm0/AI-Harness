@@ -404,7 +404,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span className="text-xs sm:text-sm">Account</span>
           </div>
           <span className="text-[10px] font-semibold text-slate-400 bg-slate-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
-            Morgan
+            Workspace
           </span>
         </div>
 

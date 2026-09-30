@@ -59,9 +59,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
 
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good Morning, Morgan';
-    if (hour < 18) return 'Good Afternoon, Morgan';
-    return 'Good Evening, Morgan';
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
   };
 
   const getProviderBadge = (provider?: string | null) => {
@@ -100,44 +100,44 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
             </div>
           </div>
 
-          {/* 3 Prompt Cards from the Reference Image */}
+          {/* 3 Meaningful Feature Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-4 w-full text-left">
-            {/* Card 1: Recipe */}
+            {/* Card 1: Internet Research */}
             <button
-              onClick={() => onPromptSuggestion('Invent a recipe that combines chocolate, coffee, and spicy peppers.')}
-              className="p-5 rounded-2xl bg-white/90 dark:bg-[#1a1a22]/90 backdrop-blur-sm border border-slate-200/80 dark:border-zinc-800/80 hover:border-indigo-400 dark:hover:border-zinc-700 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-h-[140px] text-left hover:-translate-y-0.5"
+              onClick={() => onPromptSuggestion('Search the web for the latest artificial intelligence breakthroughs this week and synthesize key developments.')}
+              className="p-5 rounded-2xl bg-white/90 dark:bg-[#1a1a22]/90 backdrop-blur-sm border border-slate-200/80 dark:border-zinc-800/80 hover:border-emerald-400 dark:hover:border-emerald-500/50 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-h-[140px] text-left hover:-translate-y-0.5"
             >
-              <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-500/10 flex items-center justify-center text-[#8B5CF6] font-mono text-sm font-bold mb-3">
-                I_
+              <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-3">
+                <Globe className="w-4 h-4" />
               </div>
               <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-zinc-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-relaxed">
-                Invent a recipe that combines chocolate, coffee, and spicy peppers.
+                Search the web for the latest artificial intelligence breakthroughs this week and synthesize key developments.
               </p>
             </button>
 
-            {/* Card 2: Company Party Email */}
+            {/* Card 2: Gmail Inbox Assistant */}
             <button
-              onClick={() => onPromptSuggestion('Create an email inviting colleagues to the annual company party.')}
+              onClick={() => onPromptSuggestion('Review my recent emails, highlight high-priority requests, and summarize action items.')}
               className="p-5 rounded-2xl bg-white/90 dark:bg-[#1a1a22]/90 backdrop-blur-sm border border-slate-200/80 dark:border-zinc-800/80 hover:border-indigo-400 dark:hover:border-zinc-700 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-h-[140px] text-left hover:-translate-y-0.5"
             >
               <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center text-[#5B50E6] dark:text-indigo-400 mb-3">
                 <Mail className="w-4 h-4" />
               </div>
               <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-zinc-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-relaxed">
-                Create an email inviting colleagues to the annual company party.
+                Review my recent emails, highlight high-priority requests, and summarize action items.
               </p>
             </button>
 
-            {/* Card 3: Portfolio Presentation */}
+            {/* Card 3: Document RAG & Code */}
             <button
-              onClick={() => onPromptSuggestion('Provide feedback for my photography portfolio presentation slides.')}
-              className="p-5 rounded-2xl bg-white/90 dark:bg-[#1a1a22]/90 backdrop-blur-sm border border-slate-200/80 dark:border-zinc-800/80 hover:border-indigo-400 dark:hover:border-zinc-700 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-h-[140px] text-left hover:-translate-y-0.5"
+              onClick={() => onPromptSuggestion('Analyze uploaded documents to extract executive takeaways, data tables, and key findings.')}
+              className="p-5 rounded-2xl bg-white/90 dark:bg-[#1a1a22]/90 backdrop-blur-sm border border-slate-200/80 dark:border-zinc-800/80 hover:border-violet-400 dark:hover:border-violet-500/50 shadow-xs hover:shadow-md transition-all group flex flex-col justify-between min-h-[140px] text-left hover:-translate-y-0.5"
             >
               <div className="w-8 h-8 rounded-lg bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center text-[#7C3AED] dark:text-violet-400 mb-3">
-                <Sparkles className="w-4 h-4" />
+                <FileText className="w-4 h-4" />
               </div>
               <p className="text-xs sm:text-sm font-medium text-slate-700 dark:text-zinc-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-relaxed">
-                Provide feedback for my photography portfolio presentation slides.
+                Analyze uploaded documents to extract executive takeaways, data tables, and key findings.
               </p>
             </button>
           </div>
@@ -298,6 +298,28 @@ export const ChatArea: React.FC<ChatAreaProps> = ({
                       </div>
                     )}
                   </div>
+
+                  {/* Suggested follow-up questions */}
+                  {!isUser && !msg.isStreaming && msg.suggested_questions && msg.suggested_questions.length > 0 && (
+                    <div className="pt-1 flex flex-col gap-1.5 w-full">
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 dark:text-zinc-400">
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-500 dark:text-indigo-400 shrink-0" />
+                        <span>Suggested follow-ups</span>
+                      </div>
+                      <div className="flex flex-col gap-1.5 w-full">
+                        {msg.suggested_questions.map((question, qIdx) => (
+                          <button
+                            key={qIdx}
+                            onClick={() => onPromptSuggestion(question)}
+                            className="text-left text-xs px-3.5 py-2 rounded-xl bg-white/90 dark:bg-[#1a1a22]/90 hover:bg-indigo-50/80 dark:hover:bg-indigo-950/40 text-slate-700 dark:text-zinc-200 hover:text-indigo-600 dark:hover:text-indigo-300 border border-slate-200/80 dark:border-zinc-800 hover:border-indigo-300 dark:hover:border-indigo-600/50 transition-all flex items-center justify-between gap-2.5 group shadow-2xs hover:shadow-xs"
+                          >
+                            <span className="leading-snug">{question}</span>
+                            <span className="text-slate-400 group-hover:text-indigo-500 dark:group-hover:text-indigo-400 shrink-0 font-bold">→</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                   {/* Action buttons on assistant message */}
                   {!isUser && !msg.isStreaming && msg.content && (

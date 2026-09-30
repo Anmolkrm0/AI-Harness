@@ -314,6 +314,7 @@ export function App() {
                       model_used: data.model_used,
                       provider_used: data.provider_used,
                       tool_calls: data.tool_calls,
+                      suggested_questions: data.suggested_questions,
                       isStreaming: false,
                     }
                   : m
@@ -502,7 +503,7 @@ export function App() {
             {/* User Profile Avatar matching reference image */}
             <div
               className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-200 via-rose-200 to-indigo-200 border border-slate-200 dark:border-zinc-700 flex items-center justify-center text-sm shadow-2xs select-none cursor-pointer hover:scale-105 transition-transform"
-              title="Morgan - Account"
+              title="User Account"
             >
               😎
             </div>

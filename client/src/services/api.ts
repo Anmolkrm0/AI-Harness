@@ -123,7 +123,7 @@ export const api = {
       onInit?: (data: { userMessageId: string; assistantMessageId: string; model: string; provider: string }) => void;
       onToolEvent?: (event: ToolEvent) => void;
       onToken?: (token: string) => void;
-      onDone?: (data: { messageId: string; content: string; model_used: string; provider_used: string; tool_calls: any[] }) => void;
+      onDone?: (data: { messageId: string; content: string; model_used: string; provider_used: string; tool_calls: any[]; suggested_questions?: string[] }) => void;
       onError?: (error: string) => void;
     },
     signal?: AbortSignal

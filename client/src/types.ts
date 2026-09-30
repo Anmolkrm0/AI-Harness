@@ -62,6 +62,7 @@ export interface Message {
   provider_used?: string | null;
   tool_calls?: ToolCall[] | null;
   attachments?: Attachment[] | null;
+  suggested_questions?: string[] | null;
   created_at: number;
   isStreaming?: boolean;
 }
