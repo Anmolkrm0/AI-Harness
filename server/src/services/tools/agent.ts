@@ -30,7 +30,6 @@ export class AgentCoordinator {
    */
   private static shouldSearchWeb(prompt: string, forceEnabled?: boolean): boolean {
     if (forceEnabled === true) return true;
-    if (forceEnabled === false) return false;
 
     const lower = prompt.toLowerCase();
     const searchKeywords = [
@@ -41,16 +40,23 @@ export class AgentCoordinator {
   }
 
   /**
-   * Intelligently discovers whether Gmail search is needed
+   * Intelligently discovers whether Gmail search is needed.
+   * Triggers ONLY when:
+   * 1. The user explicitly enabled/selected the Gmail toggle button (forceEnabled === true)
+   *    OR
+   * 2. The user specifically asks about emails / inbox / Gmail in their message.
    */
   private static shouldSearchGmail(prompt: string, forceEnabled?: boolean): boolean {
+    // 1. If user explicitly enabled/selected the Gmail toggle
     if (forceEnabled === true) return true;
-    if (forceEnabled === false) return false;
 
+    // 2. Otherwise, check if user specifically asked about emails in their message
     const lower = prompt.toLowerCase();
     const emailKeywords = [
       'email', 'emails', 'inbox', 'gmail', 'mail from', 'unread messages',
-      'flight confirmation', 'receipt in my mail', 'invitation email'
+      'unread mail', 'check my mail', 'check mail', 'my inbox', 'read my email',
+      'flight confirmation', 'receipt in my mail', 'invitation email', 'check email',
+      'fetch email', 'get email', 'search email', 'find email', 'recent emails'
     ];
     return emailKeywords.some((kw) => lower.includes(kw));
   }

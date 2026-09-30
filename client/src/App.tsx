@@ -655,9 +655,17 @@ export function App() {
           models={models}
           isStreaming={isStreaming}
           activeToolEvents={activeToolEvents}
-          onPromptSuggestion={(text) =>
-            handleSendMessage(text, { enableWeb: true, enableGmail: true, enableJudge: false, attachments: [] })
-          }
+          onPromptSuggestion={(text) => {
+            const lower = text.toLowerCase();
+            const asksGmail = ['email', 'emails', 'inbox', 'gmail', 'mail'].some((kw) => lower.includes(kw));
+            const asksWeb = ['search', 'latest', 'news', 'price', 'today', 'breakthroughs', 'browse', 'web'].some((kw) => lower.includes(kw));
+            handleSendMessage(text, {
+              enableWeb: asksWeb,
+              enableGmail: asksGmail,
+              enableJudge: false,
+              attachments: [],
+            });
+          }}
           onRegenerate={handleRegenerate}
           onEvaluateJudge={handleEvaluateJudge}
           onImproveMessage={handleImproveMessage}
